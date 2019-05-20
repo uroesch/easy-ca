@@ -1,23 +1,21 @@
 #!/bin/bash
 # Derek Moore <derek.moore@gmail.com>
-# Tiago Possato <tiago.possato@yahoo.com.br>
 
 usage() {
-    echo "Usage: $0 -c CLIENT_NAME -n CERT_NAME"
+    echo "Usage: $0 -c CLIENT_NAME"
+    echo "Issues a client certificate for CLIENT_NAME"
+    echo
     echo "Options:"
     echo "    -c CLIENT_NAME  Client name (commonName) for the new cert"
-    echo "    -n CERT_NAME  Cert name for the new cert"
     echo
     exit 2
 }
 
 CLIENT_NAME=
-CERT_NAME=
 
-while getopts "c:n:" FLAG; do
-    case "${FLAG}" in
+while getopts c: FLAG; do
+    case $FLAG in
         c) CLIENT_NAME=${OPTARG} ;;
-        n) CERT_NAME=${OPTARG} ;;
         *) usage ;;
     esac
 done
@@ -26,18 +24,11 @@ if [ "${CLIENT_NAME}" == "" ]; then
     usage
 fi
 
-if [ "${CERT_NAME}" == "" ]; then
-    usage
-fi
-
-echo "CERT_NAME: "${CERT_NAME}
-echo "CLIENT_NAME: "${CLIENT_NAME}
-
 BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source ${BIN_DIR}/functions
 source ${BIN_DIR}/defaults.conf
 
-SAFE_NAME=`echo ${CERT_NAME} | sed 's/\*/star/g'`
+SAFE_NAME=`echo $CLIENT_NAME | sed 's/\*/star/g'`
 SAFE_NAME=`echo $SAFE_NAME | sed 's/[^A-Za-z0-9-]/-/g'`
 
 echo
@@ -47,15 +38,14 @@ echo
 pushd ${BIN_DIR}/.. > /dev/null
 
 if [ -f conf/${SAFE_NAME}.client.conf ]; then
-    echo "Configuration already exists for '${CERT_NAME}', exiting."
+    echo "Configuration already exists for '${CLIENT_NAME}', exiting."
     exit 1
 fi
 
-#echo -n "Enter passphase for signing CA key: "
-#read -s PASS
-#echo
-#export CA_PASS=${PASS}
-export CA_PASS=""
+echo -n "Enter passphase for signing CA key: "
+read -s PASS
+echo
+export CA_PASS=${PASS}
 
 # Generate the client cert openssl config
 export SAN=""
@@ -83,4 +73,5 @@ popd > /dev/null
 echo
 echo "Client certificate created."
 echo
+
 

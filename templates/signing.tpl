@@ -10,10 +10,10 @@ name_opt                = multiline,-esc_msb,utf8 # Display UTF-8 characters
 # Configuration for `openssl req ...`
 
 [ req ]
-default_bits            = 2048                  # RSA key size
+default_bits            = 4096                  # RSA key size
 default_days            = 730                   # How long to certify for
 encrypt_key             = yes                   # Protect private key
-default_md              = sha256                # MD to use
+default_md              = sha512                # MD to use
 utf8                    = yes                   # Input is UTF-8
 string_mask             = utf8only              # Emit UTF-8 strings
 prompt                  = no                    # Don't prompt for DN

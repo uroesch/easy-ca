@@ -1,5 +1,5 @@
 [ req ]
-default_bits            = 2048                  # RSA key size
+default_bits            = 4096                  # RSA key size
 default_days            = 730                   # How long to certify for
 encrypt_key             = no                    # Protect private key
 default_md              = sha512                # MD to use

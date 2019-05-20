@@ -9,7 +9,6 @@ A suite of bash scripts for automating very basic OpenSSL Certificate Authority 
 * Revoking certificates and maintaining CRLs
 
 
-
 ## Usage
 
 ### Create a new Root CA
@@ -29,7 +28,6 @@ $ROOT_CA_DIR/crl/ca.crl
 ```
 
 
-
 ### (Optional) Create an Intermediate Signing CA
 
 Running **create-signing-ca** from within a Root CA installation will initialize a new Intermediate CA directory structure, indepedent and separate from the Root CA. A Root CA may issue multiple Intermediate CAs.
@@ -47,7 +45,16 @@ $SIGNING_CA_DIR/private/ca.key
 $SIGNING_CA_DIR/crl/ca.crl
 ```
 
+## Using the Created Certificate Authority
 
+After the Certificate Authority has been created, the scripts should be run on the created CA directory (At the first run the directory must no exist).
+For example:
+
+```
+create-root-ca -d /opt/CA
+cd /opt/CA/bin
+create-client -c user1@bogus.com -n user1
+```
 
 ### Issue a Server Certificate
 
@@ -71,14 +78,12 @@ $CA_DIR/private/fqdn-domain-com.server.key
 $CA_DIR/csr/fqdn-domain-com.server.csr
 ```
 
-
-
 ### Issue a Client Certificate
 
 Running **create-client** from within any CA installation will issue a new client (clientAuth) certificate:
 
 ```
-$CA_DIR/bin/create-client -c user@domain.com
+$CA_DIR/bin/create-client -c user@domain.com -n certname
 ```
 
 **create-client** will prompt for basic DN configuration, using the CA configuration as defaults. After the script is completed, the client certificate, key, and CSR are available for review:
@@ -89,15 +94,28 @@ $CA_DIR/private/user-domain-com.client.key
 $CA_DIR/csr/user-domain-com.client.csr
 ```
 
+The older create-client-o script will also create a client certificate but without the need of specifing a certificate name:
+
+```
+$CA_DIR/bin/create-client-o -c user@domain.com 
+```
+
 
 
 ### Revoke a Certificate
 
 Running **revoke-cert** from within a CA installation allows you to revoke a certificate issued by that CA and update the CRL:
 
+For Server certificates:
 ```
 $CA_DIR/bin/revoke-cert -c $CA_DIR/certs/fqdn-domain-com.server.crt
 ```
+
+For Client certificates:
+```
+$CA_DIR/bin/revoke-cert -c $CA_DIR/certs/certificate.client.crt
+```
+
 
 **revoke-cert** will prompt for the revocation reason. After the script is completed, the server CRL is updated and available for review:
 
