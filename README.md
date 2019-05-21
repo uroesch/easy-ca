@@ -133,7 +133,7 @@ These scripts are very simple, and make some hard-coded assumptions about behavi
 * Root and Intermediate CA keys are always encrypted
 * Only one level of Intermediate CA is supported
 * Client and Server certificates have a 730-day lifetime
-* Client and Server certificates have 2048-bit RSA keys
+* Client and Server certificates have 4096-bit RSA keys and SHA512
 * Client and Server keys are never encrypted
 * There is no wrapper for renewing certificates
 
