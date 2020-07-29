@@ -26,7 +26,10 @@ declare -x PKCS12_PASS="${PKCS12_PASS:-}"
 declare -- PKCS12=false
 declare -- CSR_ONLY=false
 declare -- APPEND_CHAIN=false
-
+declare -- PKCS12=false
+declare -- CLIENT_NAME=
+declare -- NOPASS=true
+declare -- FORCE=false
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -49,8 +52,11 @@ function usage() {
     -s | --san SAN         Set a subject alternative name for the certificate.
                            Can be used muliple times.
     -p | --pkcs12          Create a pkcs12 bundle from key and certificate.
+    -n | --name CERT_NAME  File name for the certifcate.
+                           Default: COMMON_NAME
     -a | --append-chain    Append chain if ca/chain.pm exists.
     -r | --csr-only        Only create a key and a certificate signing request.
+    -f | --force           Force override
 
 USAGE
   exit ${exit_code}
@@ -62,8 +68,10 @@ function parse_options() {
     -c|--cn)           shift; CN=${1};;
     -n|--name)         shift; CERT_NAME=${1};;
     -s|--san)          shift; SAN="${SAN}, ${SAN_PREFIX}:${1}";;
+    -f|--force)        FORCE=true;;
     -p|--pkcs12)       PKCS12=true;;
     -r|--csr-only)     CSR_ONLY=true;;
+    -a|--append-chain) APPEND_CHAIN=true;;
     -h|--help)         usage 0;;
     -a|--append-chain) APPEND_CHAIN=true;;
     *)                 usage 1;;
@@ -91,6 +99,15 @@ function create_safe_name() {
   SAFE_NAME=$(to_safe_name "${CERT_NAME}")
 }
 
+function ask_client_passphrase() {
+  if [[ ${NOPASS} != true ]]; then
+    echo -n "Enter passphrase for ${CLIENT_NAME}'s key: "
+    read -s pass
+    echo
+    export CA_PASS=${pass:-}
+  fi
+}
+
 function create_client_conf() {
   # Generate the client cert openssl config
   export CA_USERNAME=${CN}
@@ -115,6 +132,7 @@ message "Creating new client certificate for '${CN}' with:" \
 create_safe_name
 pushd ${BIN_DIR}/.. > /dev/null
 check_existing_configuration "${SAFE_NAME}" client
+ask_client_passphrase
 create_client_conf
 ask_ca_passphrase 'signing'
 create_csr "client" "${SAFE_NAME}"
