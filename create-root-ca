@@ -40,10 +40,10 @@ generate_conf ${HOME}/bin/defaults.conf
 source ${HOME}/bin/defaults.conf
 
 echo
-echo -n "Enter passphase for encrypting root CA key: "
+echo -n "Enter passphrase for encrypting root CA key: "
 read -s PASS1
 echo
-echo -n "Verifying - Enter passphase for encrypting root CA key: "
+echo -n "Verifying - Enter passphrase for encrypting root CA key: "
 read -s PASS2
 echo
 

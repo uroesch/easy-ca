@@ -51,7 +51,7 @@ if [ -f conf/${SAFE_NAME}.client.conf ]; then
     exit 1
 fi
 
-#echo -n "Enter passphase for signing CA key: "
+#echo -n "Enter passphrase for signing CA key: "
 #read -s PASS
 #echo
 #export CA_PASS=${PASS}
