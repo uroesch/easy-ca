@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+# -----------------------------------------------------------------------------
+# Setup
+# -----------------------------------------------------------------------------
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# -----------------------------------------------------------------------------
+# Globals
+# -----------------------------------------------------------------------------
+declare -r WORK_DIR="$(dirname ${0})/.."
+declare -r BASE_DIR=${HOME}/tmp/easy-ca-${RANDOM}
+declare -r ROOT_CA_DIR=${BASE_DIR}/root
+declare -r SIGNING_CA_DIR=${BASE_DIR}/signing
+
+# -----------------------------------------------------------------------------
+# Functions
+# -----------------------------------------------------------------------------
+function test::setup() {
+  [[ ! -d ${BASE_DIR} ]] && mkdir -p ${BASE_DIR}
+}
+
+function test::create_root_ca() {
+  printf "\n\n\n\n\n\n\n\n\n\n" | \
+    ${WORK_DIR}/create-root-ca -d ${ROOT_CA_DIR}
+}
+
+function test::create_signing_ca() {
+  printf "\n\n\n\n\n\n\n\n\n\n\n" | \
+    ${ROOT_CA_DIR}/bin/create-signing-ca -d ${SIGNING_CA_DIR}
+}
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+test::setup
+test::create_root_ca
+test::create_signing_ca
