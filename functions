@@ -53,13 +53,13 @@ init_ca_home() {
 
     # Ensure we're initializing an empty directory
     if [ -d "${HOME}" ]; then
-	echo "${HOME} already exists, exiting"
-	exit 1
+        echo "${HOME} already exists, exiting"
+        exit 1
     fi
 
     if ! mkdir -p "${HOME}"; then
         echo "Unable to create ${HOME}, exiting"
-	exit 1
+        exit 1
     fi
 
     pushd ${HOME} > /dev/null
