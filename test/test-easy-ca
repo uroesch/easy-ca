@@ -23,13 +23,18 @@ function test::setup() {
 }
 
 function test::create_root_ca() {
-  printf "\n\n\n\n\n\n\n\n\n\n" | \
+  printf "%0.0s\n" {0..10} | \
     ${WORK_DIR}/create-root-ca -d ${ROOT_CA_DIR}
 }
 
 function test::create_signing_ca() {
-  printf "\n\n\n\n\n\n\n\n\n\n\n" | \
+  printf "%0.0s\n" {0..11} | \
     ${ROOT_CA_DIR}/bin/create-signing-ca -d ${SIGNING_CA_DIR}
+}
+
+function test::create_client_certificate() {
+  printf "%0.0s\n" {0..6} | \
+    ${SIGNING_CA_DIR}/bin/create-client -c bob -n bob_builder
 }
 
 # -----------------------------------------------------------------------------
@@ -38,3 +43,4 @@ function test::create_signing_ca() {
 test::setup
 test::create_root_ca
 test::create_signing_ca
+test::create_client_certificate
