@@ -2,6 +2,14 @@
 # Derek Moore <derek.moore@gmail.com>
 # Tiago Possato <tiago.possato@yahoo.com.br>
 
+# -----------------------------------------------------------------------------
+# Setup
+# -----------------------------------------------------------------------------
+set -o errexit
+set -o nounset
+set -o pipefail
+
+
 usage() {
     echo "Usage: $0 -c CLIENT_NAME -n CERT_NAME"
     echo "Options:"
