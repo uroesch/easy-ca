@@ -37,15 +37,21 @@ function test::create_server_certificate() {
     ${SIGNING_CA_DIR}/bin/create-server -s \*.acme.com -a acme.com
 }
 
+function test::create_ssl_certificate() {
+  printf "%0.0s\n" {0..6} | \
+    ${SIGNING_CA_DIR}/bin/create-ssl -s ssl.acme.com -a acme.com
+}
+
 function test::create_client_certificate() {
   printf "%0.0s\n" {0..6} | \
     ${SIGNING_CA_DIR}/bin/create-client -c bob -n bob_builder
 }
 
-function test::revoke_server_certificate() {
+function test::revoke_certificate() {
+  local certificate=${1}; shift; 
   printf "1\ny\n" | \
     ${SIGNING_CA_DIR}/bin/revoke-cert \
-    -c ${SIGNING_CA_DIR}/certs/star-acme-com.server.crt
+    -c ${SIGNING_CA_DIR}/certs/${certificate}
 }
 
 # -----------------------------------------------------------------------------
@@ -55,5 +61,8 @@ test::setup
 test::create_root_ca
 test::create_signing_ca
 test::create_server_certificate
+test::create_ssl_certificate
 test::create_client_certificate
-test::revoke_server_certificate
+test::revoke_certificate "star-acme-com.server.crt"
+test::revoke_certificate "ssl-acme-com.server.crt"
+test::revoke_certificate "bob-builder.client.crt"

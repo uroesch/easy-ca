@@ -2,6 +2,13 @@
 # Derek Moore <derek.moore@gmail.com>
 # Changed by fcgdam
 
+# -----------------------------------------------------------------------------
+# Setup
+# -----------------------------------------------------------------------------
+set -o errexit
+set -o nounset
+set -o pipefail
+
 usage() {
     echo "Usage: $0 -s SERVER_NAME [-a ALT_NAME]..."
     echo "Issues a server SSL certificate for SERVER_NAME"
