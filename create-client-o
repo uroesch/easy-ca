@@ -1,7 +1,7 @@
 #!/bin/bash
 # Derek Moore <derek.moore@gmail.com>
 
-usage() {
+function usage() {
     echo "Usage: $0 -c CLIENT_NAME"
     echo "Issues a client certificate for CLIENT_NAME"
     echo

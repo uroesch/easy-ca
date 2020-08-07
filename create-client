@@ -10,7 +10,7 @@ set -o nounset
 set -o pipefail
 
 
-usage() {
+function usage() {
     echo "Usage: $0 -c CLIENT_NAME -n CERT_NAME"
     echo "Options:"
     echo "    -c CLIENT_NAME  Client name (commonName) for the new cert"

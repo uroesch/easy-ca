@@ -13,13 +13,13 @@ revoke-cert
 functions
 "
 
-override() {
+function override() {
   target=${1#USER_}
   NAME=`echo $2 | sed 's/[^A-Za-z0-9-]/-/g'`
   eval "${target}=\$${1}"
 }
 
-fullpath() {
+function fullpath() {
   cd $(dirname $1)
   echo $PWD/$(basename $1)
 }
@@ -32,7 +32,7 @@ fullpath() {
 ## that match {{CA_*}} will be replaced with the contents of the
 ## environment variable with the same name.
 ##
-template() {
+function template() {
   local REGEX=""
   for VAR in ${!CA_*}; do
     REGEX="${REGEX}s#{{\s*${VAR}\s*}}#${!VAR}#g; "
@@ -46,7 +46,7 @@ template() {
 ##
 ## Initializes a CA directory skeleton at PATH
 ##
-init_ca_home() {
+function init_ca_home() {
   HOME=$1
 
   # Ensure we're initializing an empty directory
@@ -93,7 +93,7 @@ init_ca_home() {
 ##
 ## Generate the ca.conf for new root and signing CAs
 ##
-generate_conf() {
+function generate_conf() {
   DEST=$1
 
   echo -n "1. Short label for new CA [${CA_NAME}]: "
