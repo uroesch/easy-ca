@@ -15,7 +15,7 @@ set -o pipefail
 declare -x SAN=${SAN:-}
 
 
-usage() {
+function usage() {
     echo "Usage: $0 -d CA_DIR"
     echo "Initializes a new signing sub-CA in CA_DIR"
     echo
