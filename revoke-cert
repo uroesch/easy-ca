@@ -40,9 +40,7 @@ BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source ${BIN_DIR}/functions
 source ${BIN_DIR}/defaults.conf
 
-echo
-echo "Revoking certificate '${CERT}'"
-echo
+message "Revoking certificate '${CERT}'"
 
 if [ ! -f "${CERT}" ]; then
     echo "Could not read certificate '${CERT}', exiting."
@@ -101,7 +99,5 @@ openssl ca -gencrl \
 
 popd > /dev/null
 
-echo
-echo "Server certificate revoked."
-echo
 
+message "Server certificate revoked."

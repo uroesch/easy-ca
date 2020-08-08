@@ -44,9 +44,7 @@ source ${BIN_DIR}/functions
 HOME=$CA_DIR
 CA_NAME=$( basename "${HOME}" )
 
-echo
-echo "Creating root CA in '${HOME}'"
-echo
+message "Creating root CA in '${HOME}'"
 
 init_ca_home ${HOME}
 generate_conf ${HOME}/bin/defaults.conf
@@ -104,7 +102,5 @@ cp -r ${BIN_DIR}/templates bin/
 
 popd > /dev/null
 
-echo
-echo "Root CA initialized."
-echo
 
+message "Root CA initialized."
