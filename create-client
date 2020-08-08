@@ -38,9 +38,6 @@ if [ "${CERT_NAME}" == "" ]; then
     usage
 fi
 
-echo "CERT_NAME: "${CERT_NAME}
-echo "CLIENT_NAME: "${CLIENT_NAME}
-
 BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source ${BIN_DIR}/functions
 source ${BIN_DIR}/defaults.conf
@@ -48,9 +45,9 @@ source ${BIN_DIR}/defaults.conf
 SAFE_NAME=`echo ${CERT_NAME} | sed 's/\*/star/g'`
 SAFE_NAME=`echo $SAFE_NAME | sed 's/[^A-Za-z0-9-]/-/g'`
 
-echo
-echo "Creating new client certificate for '${CLIENT_NAME}'"
-echo
+message "Creating new client certificate for '${CLIENT_NAME}' with:" \
+  "CERT_NAME: '${CERT_NAME}'" \
+  "CLIENT_NAME: '${CLIENT_NAME}'"
 
 pushd ${BIN_DIR}/.. > /dev/null
 
@@ -88,7 +85,4 @@ openssl ca -batch -notext \
 
 popd > /dev/null
 
-echo
-echo "Client certificate created."
-echo
-
+message "Client certificate created."

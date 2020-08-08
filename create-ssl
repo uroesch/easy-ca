@@ -56,11 +56,10 @@ source ${BIN_DIR}/defaults.conf
 SAFE_NAME=`echo ${SERVER_NAME} | sed 's/\*/star/g'`
 SAFE_NAME=`echo ${SAFE_NAME} | sed 's/[^A-Za-z0-9-]/-/g'`
 
-echo
-echo "Creating new SSL server certificate for:"
-echo "commonName: ${SERVER_NAME}"
-echo "subjectAltName: ${ALT_NAME}"
-echo
+message \
+  "Creating new SSL server certificate for:" \
+  "commonName: '${SERVER_NAME}'" \
+  "subjectAltName: '${ALT_NAME}'"
 
 pushd ${BIN_DIR}/.. > /dev/null
 
@@ -97,7 +96,4 @@ openssl ca -batch -notext \
 
 popd > /dev/null
 
-echo
-echo "Server certificate created."
-echo
-
+message "Server certificate created."

@@ -13,25 +13,40 @@ revoke-cert
 functions
 "
 
+# -----------------------------------------------------------------------------
+# print horizontal line 80 chars wide
+# -----------------------------------------------------------------------------
+function delimiter() {
+  printf "%0.1s" -{0..80}
+  printf "\n"
+}
+
+# -----------------------------------------------------------------------------
+# overrride user name
+# -----------------------------------------------------------------------------
 function override() {
   target=${1#USER_}
   NAME=`echo $2 | sed 's/[^A-Za-z0-9-]/-/g'`
   eval "${target}=\$${1}"
 }
 
+# -----------------------------------------------------------------------------
+# Return the absolute path of a file
+# -----------------------------------------------------------------------------
 function fullpath() {
   cd $(dirname $1)
   echo $PWD/$(basename $1)
 }
 
-##
-## template TEMPLATE_FILE DESTINATION_FILE
-##
-## Performs variable interpolation on TEMPLATE_FILE and copies
-## the result to DESTINATION_FILE. All strings in TEMPLATE_FILE
-## that match {{CA_*}} will be replaced with the contents of the
-## environment variable with the same name.
-##
+# -----------------------------------------------------------------------------
+# template TEMPLATE_FILE DESTINATION_FILE
+#
+# Performs variable interpolation on TEMPLATE_FILE and copies
+# the result to DESTINATION_FILE. All strings in TEMPLATE_FILE
+# that match {{CA_*}} will be replaced with the contents of the
+# environment variable with the same name.
+#
+# -----------------------------------------------------------------------------
 function template() {
   local REGEX=""
   for VAR in ${!CA_*}; do
@@ -41,11 +56,11 @@ function template() {
 }
 
 
-##
-## init_ca_home CA_PATH
-##
-## Initializes a CA directory skeleton at PATH
-##
+# -----------------------------------------------------------------------------
+# init_ca_home CA_PATH
+#
+# Initializes a CA directory skeleton at PATH
+# -----------------------------------------------------------------------------
 function init_ca_home() {
   HOME=$1
 
@@ -88,11 +103,11 @@ function init_ca_home() {
   popd > /dev/null
 }
 
-##
-## generate_conf CONF
-##
-## Generate the ca.conf for new root and signing CAs
-##
+# -----------------------------------------------------------------------------
+# generate_conf CONF
+#
+# Generate the ca.conf for new root and signing CAs
+# -----------------------------------------------------------------------------
 function generate_conf() {
   DEST=$1
 
@@ -166,4 +181,18 @@ CA_CERT_O="${CA_CERT_O}"
 CA_CERT_OU="${CA_CERT_OU}"
 CA_CERT_CN="${CA_CERT_CN}"
 EOF
+}
+
+# -----------------------------------------------------------------------------
+# Print message with delimiters
+# -----------------------------------------------------------------------------
+function message() {
+  local -a messages=( "${@}" )
+  echo
+  delimiter
+  for message in "${messages[@]}"; do
+    printf "${message}\n"
+  done
+  delimiter
+  echo
 }
