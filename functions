@@ -1,24 +1,54 @@
 #!/bin/bash
 # Derek Moore <derek@ripple.com>
 
-# Binaries copied during install
-BINARIES="
-create-root-ca
-create-signing-ca
-create-server
-create-client
-create-client-o
-create-ssl
-revoke-cert
-functions
-"
-
 # -----------------------------------------------------------------------------
 # print horizontal line 80 chars wide
 # -----------------------------------------------------------------------------
 function delimiter() {
   printf "%0.1s" -{0..80}
   printf "\n"
+}
+
+# -----------------------------------------------------------------------------
+# Print message with delimiters
+# -----------------------------------------------------------------------------
+function message() {
+  local -a messages=( "${@}" )
+  echo
+  delimiter
+  for message in "${messages[@]}"; do
+    printf "${message}\n"
+  done
+  delimiter
+  echo
+}
+
+# -----------------------------------------------------------------------------
+# list of binaries to be copied
+# -----------------------------------------------------------------------------
+function binaries() {
+  # Binaries copied during install
+  local -a binaries=(
+    create-root-ca
+    create-signing-ca
+    create-server
+    create-client
+    create-client-o
+    create-ssl
+    revoke-cert
+    functions
+  )
+  echo ${binaries[@]}
+}
+
+# -----------------------------------------------------------------------------
+# Replicate the existing binary directory
+# -----------------------------------------------------------------------------
+function copy_scripts() {
+  for bin in $(binaries); do
+    cp ${BIN_DIR}/${bin} bin/
+  done
+  cp -r ${BIN_DIR}/templates bin/
 }
 
 # -----------------------------------------------------------------------------
@@ -181,18 +211,4 @@ CA_CERT_O="${CA_CERT_O}"
 CA_CERT_OU="${CA_CERT_OU}"
 CA_CERT_CN="${CA_CERT_CN}"
 EOF
-}
-
-# -----------------------------------------------------------------------------
-# Print message with delimiters
-# -----------------------------------------------------------------------------
-function message() {
-  local -a messages=( "${@}" )
-  echo
-  delimiter
-  for message in "${messages[@]}"; do
-    printf "${message}\n"
-  done
-  delimiter
-  echo
 }

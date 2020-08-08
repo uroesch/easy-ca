@@ -102,10 +102,7 @@ openssl ca -gencrl -batch \
            -out crl/ca.crl
 
 # Replicate the existing binary directory
-for BIN in ${BINARIES}; do
-    cp ${BIN_DIR}/${BIN} bin/
-done
-cp -r ${BIN_DIR}/templates bin/
+copy_scripts
 
 popd > /dev/null
 
