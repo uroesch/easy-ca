@@ -13,14 +13,18 @@ set -o pipefail
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
 declare -x SAN=${SAN:-}
+declare    CERT=
 
+# -----------------------------------------------------------------------------
+# Functions
+# -----------------------------------------------------------------------------
 function usage() {
   local exit_code=${1:-1}
   cat <<USAGE
 
-  Usage: 
+  Usage:
     ${SCRIPT} -c CERT
-  
+
   Revokes a certificate issued by this CA
 
   Options:
@@ -30,19 +34,27 @@ USAGE
   exit ${exit_code}
 }
 
-CERT=
-
-while getopts hc: FLAG; do
-    case $FLAG in
-        c) CERT=${OPTARG} ;;
-        h) usage 0 ;;
-        *) usage 1 ;;
+function parse_options() {
+  while getopts hc: flag; do
+    case ${flag} in
+    c) CERT=${OPTARG} ;;
+    h) usage 0 ;;
+    *) usage 1 ;;
     esac
-done
+  done
+}
 
-if [ "${CERT}" == "" ]; then
+function validate_options() {
+  if [[ -z ${CERT} ]]; then
     usage 1
-fi
+  fi
+}
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+parse_options "${@}"
+validate_options
 
 BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source ${BIN_DIR}/functions
@@ -106,6 +118,5 @@ openssl ca -gencrl \
            -out crl/ca.crl
 
 popd > /dev/null
-
 
 message "Server certificate revoked."
