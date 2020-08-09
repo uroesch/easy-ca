@@ -25,6 +25,15 @@ function test::setup() {
   [[ ! -d ${BASE_DIR} ]] && mkdir -p ${BASE_DIR}
 }
 
+function test::alternatives() {
+  local options=( "${@}" ) 
+  local alternatives=
+  for option in "${options[@]}"; do
+    alternatives+="-a ${option}"
+  done 
+  echo ${alternatives}
+}
+
 function test::create_root_ca() {
   printf "%0.0s\n" {0..10} | \
     ${WORK_DIR}/create-root-ca -d ${ROOT_CA_DIR}
@@ -36,18 +45,25 @@ function test::create_signing_ca() {
 }
 
 function test::create_server_certificate() {
+  local server_name="${1}"; shift;
+  local alternatives=$(test::alternatives "${@}")
   printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-server -s \*.acme.com -a acme.com
+    ${SIGNING_CA_DIR}/bin/create-server -s "${server_name}" ${alternatives}
+      
 }
 
 function test::create_ssl_certificate() {
+  local server_name="${1}"; shift;
+  local alternatives=$(test::alternatives "${@}")
   printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-ssl -s ssl.acme.com -a acme.com
+    ${SIGNING_CA_DIR}/bin/create-ssl -s ${server_name} ${alternatives}
 }
 
 function test::create_client_certificate() {
+  local client_name=${1}; shift;
+  local cert_name=${1}; shift;
   printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-client -c bob -n bob_builder
+    ${SIGNING_CA_DIR}/bin/create-client -c ${client_name} -n ${cert_name}
 }
 
 function test::revoke_certificate() {
@@ -88,12 +104,12 @@ function test::final_message() {
 test::setup
 test::create_root_ca
 test::create_signing_ca
-test::create_server_certificate
-test::create_ssl_certificate
-test::create_client_certificate
-test::revoke_certificate "star-acme-com.server.crt"
-test::revoke_certificate "ssl-acme-com.server.crt"
-test::revoke_certificate "bob-builder.client.crt"
+test::create_server_certificate '*.acme.com' 'acme.com'
+test::create_ssl_certificate 'ssl.acme.com' 'acme.com'
+test::create_client_certificate 'bob' 'bob_builder'
+test::revoke_certificate 'star-acme-com.server.crt'
+test::revoke_certificate 'ssl-acme-com.server.crt'
+test::revoke_certificate 'bob-builder.client.crt'
 test::usage \
   create-client \
   create-client-o \

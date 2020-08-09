@@ -65,8 +65,7 @@ BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source ${BIN_DIR}/functions
 source ${BIN_DIR}/defaults.conf
 
-SAFE_NAME=`echo ${CERT_NAME} | sed 's/\*/star/g'`
-SAFE_NAME=`echo $SAFE_NAME | sed 's/[^A-Za-z0-9-]/-/g'`
+SAFE_NAME=$(to_safe_name "${CERT_NAME}")
 
 message "Creating new client certificate for '${CLIENT_NAME}' with:" \
   "CERT_NAME: '${CERT_NAME}'" \

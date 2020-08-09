@@ -76,8 +76,7 @@ source ${BIN_DIR}/functions
 source ${BIN_DIR}/defaults.conf
 
 # Sanitize the commonName to make it suitable for use in filenames
-SAFE_NAME=`echo ${SERVER_NAME} | sed 's/\*/star/g'`
-SAFE_NAME=`echo ${SAFE_NAME} | sed 's/[^A-Za-z0-9-]/-/g'`
+SAFE_NAME=$(to_safe_name "${SERVER_NAME}")
 
 message \
   "Creating new SSL server certificate for:" \
