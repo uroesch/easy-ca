@@ -14,8 +14,11 @@ set -o pipefail
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
 declare -x SAN=${SAN:-}
+declare    CA_DIR=
 
-
+# -----------------------------------------------------------------------------
+# Functions
+# -----------------------------------------------------------------------------
 function usage() {
   local exit_code=${1:-1}
   cat <<USAGE
@@ -31,19 +34,27 @@ USAGE
   exit ${exit_code}
 }
 
-CA_DIR=
-
-while getopts hd: FLAG; do
-    case $FLAG in
-        d) CA_DIR=${OPTARG} ;;
-        h) usage 0;;
-        *) usage 1;;
+function parse_options() {
+  while getopts hd: flag; do
+    case ${flag} in
+    d) CA_DIR=${OPTARG};;
+    h) usage 0;;
+    *) usage 1;;
     esac
-done
+  done
+}
 
-if [ "${CA_DIR}" == "" ]; then
+function validate_options() {
+  if [[ -z ${CA_DIR} ]]; then
     usage 1
-fi
+  fi
+}
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+parse_options "${@}"
+validate_options
 
 BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source ${BIN_DIR}/functions

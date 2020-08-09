@@ -13,8 +13,12 @@ set -o pipefail
 # Globals
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
+declare    CLIENT_NAME=
+declare    CERT_NAME=
 
-
+# -----------------------------------------------------------------------------
+# Functions
+# -----------------------------------------------------------------------------
 function usage() {
   local exit_code=${1:-1}
   cat <<USAGE
@@ -30,25 +34,32 @@ USAGE
   exit ${exit_code}
 }
 
-CLIENT_NAME=
-CERT_NAME=
-
-while getopts "hc:n:" FLAG; do
-    case "${FLAG}" in
-        c) CLIENT_NAME=${OPTARG} ;;
-        n) CERT_NAME=${OPTARG} ;;
-        h) usage 0;;
-        *) usage 1;;
+function parse_options() {
+  while getopts hc:n: flag; do
+    case ${flag} in
+    c) CLIENT_NAME=${OPTARG};;
+    n) CERT_NAME=${OPTARG};;
+    h) usage 0;;
+    *) usage 1;;
     esac
-done
+  done
+}
 
-if [ "${CLIENT_NAME}" == "" ]; then
+function validate_options() {
+  if [[ -z ${CLIENT_NAME} ]]; then
     usage 1
-fi
+  fi
 
-if [ "${CERT_NAME}" == "" ]; then
+  if [[ -z ${CERT_NAME} ]]; then
     usage 1
-fi
+  fi
+}
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+parse_options "${@}"
+validate_options
 
 BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source ${BIN_DIR}/functions
