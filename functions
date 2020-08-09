@@ -66,8 +66,8 @@ function copy_scripts() {
 # overrride user name
 # -----------------------------------------------------------------------------
 function override() {
-  target=${1#USER_}
-  NAME=$(echo $2 | sed 's/[^A-Za-z0-9-]/-/g')
+  local target=${1#USER_}
+  NAME=${2//[^A-Za-z0-9-]/-}
   eval "${target}=\$${1}"
 }
 
@@ -75,8 +75,9 @@ function override() {
 # Return the absolute path of a file
 # -----------------------------------------------------------------------------
 function fullpath() {
-  cd $(dirname $1)
-  echo $PWD/$(basename $1)
+  local path=${1}; shift;
+  cd $(dirname ${path})
+  echo "${PWD}/$(basename ${path})"
 }
 
 # -----------------------------------------------------------------------------
@@ -89,13 +90,14 @@ function fullpath() {
 #
 # -----------------------------------------------------------------------------
 function template() {
-  local REGEX=""
-  for VAR in ${!CA_*}; do
-    REGEX="${REGEX}s#{{\s*${VAR}\s*}}#${!VAR}#g; "
+  local input=${1}; shift;
+  local output=${1}; shift;
+  local regex=""
+  for var in ${!CA_*}; do
+    regex+="s#{{\s*${var}\s*}}#${!var}#g; "
   done
-  sed -e "${REGEX}" < $1 > $2
+  sed -e "${regex}" < ${input} > ${output}
 }
-
 
 # -----------------------------------------------------------------------------
 # init_ca_home CA_PATH
@@ -103,20 +105,20 @@ function template() {
 # Initializes a CA directory skeleton at PATH
 # -----------------------------------------------------------------------------
 function init_ca_home() {
-  HOME=$1
+  local home=${1}; shift;
 
   # Ensure we're initializing an empty directory
-  if [ -d "${HOME}" ]; then
-    echo "${HOME} already exists, exiting"
+  if [ -d "${home}" ]; then
+    echo "${home} already exists, exiting"
     exit 1
   fi
 
-  if ! mkdir -p "${HOME}"; then
-    echo "Unable to create ${HOME}, exiting"
+  if ! mkdir -p "${home}"; then
+    echo "Unable to create ${home}, exiting"
     exit 1
   fi
 
-  pushd ${HOME} > /dev/null
+  pushd ${home} > /dev/null
 
   # Create top-level CA structure
   mkdir -p ca
@@ -150,13 +152,12 @@ function init_ca_home() {
 # Generate the ca.conf for new root and signing CAs
 # -----------------------------------------------------------------------------
 function generate_conf() {
-  DEST=$1
+  local dest=${1}; shift;
 
   echo -n "1. Short label for new CA [${CA_NAME}]: "
   read NAME
   if [ -n "${NAME}" ]; then
-    CA_NAME=${NAME}
-    CA_NAME=$(echo ${CA_NAME} | sed 's/[^A-Za-z0-9-]/-/g')
+    CA_NAME=${NAME//[^A-Za-z0-9-]/-}
   fi
 
   echo -n "2. Domain name for new CA [${CA_DOMAIN}]: "
@@ -211,7 +212,7 @@ function generate_conf() {
     CA_CERT_CN=${CERT_CN}
   fi
 
-  cat > ${DEST} << EOF
+  cat > ${dest} << EOF
 CA_DOMAIN="${CA_DOMAIN}"
 CA_NAME="${CA_NAME}"
 
