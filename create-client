@@ -15,6 +15,7 @@ set -o pipefail
 declare -r SCRIPT=${0##*/}
 declare    CLIENT_NAME=
 declare    CERT_NAME=
+declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -61,7 +62,6 @@ function validate_options() {
 parse_options "${@}"
 validate_options
 
-BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source ${BIN_DIR}/functions
 source ${BIN_DIR}/defaults.conf
 
