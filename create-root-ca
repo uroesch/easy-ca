@@ -14,6 +14,7 @@ set -o pipefail
 declare -r SCRIPT=${0##*/}
 declare -x SAN=${SAN:-}
 declare    CA_DIR=
+declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -56,18 +57,16 @@ function validate_options() {
 parse_options "${@}"
 validate_options
 
-BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source ${BIN_DIR}/functions
 [[ -f "${BIN_DIR}/defaults.conf" ]] && source ${BIN_DIR}/defaults.conf
 
-HOME=$CA_DIR
-CA_NAME=$( basename "${HOME}" )
+CA_NAME=$( basename "${CA_DIR}" )
 
-message "Creating root CA in '${HOME}'"
+message "Creating root CA in '${CA_DIR}'"
 
-init_ca_home ${HOME}
-generate_conf ${HOME}/bin/defaults.conf
-source ${HOME}/bin/defaults.conf
+init_ca_home ${CA_DIR}
+generate_conf ${CA_DIR}/bin/defaults.conf
+source ${CA_DIR}/bin/defaults.conf
 
 echo
 echo -n "Enter passphrase for encrypting root CA key: "
@@ -83,7 +82,7 @@ if [ "${PASS1}" != "${PASS2}" ]; then
 fi
 export CA_PASS=${PASS1}
 
-pushd ${HOME} > /dev/null
+pushd ${CA_DIR} > /dev/null
 
 # Generate the root CA openssl config
 template "${BIN_DIR}/templates/root.tpl" "conf/ca.conf"
