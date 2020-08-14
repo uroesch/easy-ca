@@ -224,3 +224,24 @@ CA_CERT_OU="${CA_CERT_OU}"
 CA_CERT_CN="${CA_CERT_CN}"
 EOF
 }
+
+# -----------------------------------------------------------------------------
+# Passphrase dialog for CA key passwords
+# -----------------------------------------------------------------------------
+function ask_passphrase() {
+  local ca_name="${1}"; shift
+  local prompt="Enter passphrase for encrypting the ${ca_name} CA key: "
+  echo
+  echo -n "${prompt}"
+  read -s pass1
+  echo
+  echo -n "Verifying - ${prompt}"
+  read -s pass2
+  echo
+
+  if [[ ${pass1} != ${pass2} ]]; then
+    echo "Passphrases did not match, exiting."
+    exit 1
+  fi
+  export CA_PASS=${pass1}
+}

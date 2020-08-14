@@ -67,20 +67,7 @@ message "Creating root CA in '${CA_DIR}'"
 init_ca_home ${CA_DIR}
 generate_conf ${CA_DIR}/bin/defaults.conf
 source ${CA_DIR}/bin/defaults.conf
-
-echo
-echo -n "Enter passphrase for encrypting root CA key: "
-read -s PASS1
-echo
-echo -n "Verifying - Enter passphrase for encrypting root CA key: "
-read -s PASS2
-echo
-
-if [ "${PASS1}" != "${PASS2}" ]; then
-    echo "Passphrases did not match, exiting."
-    exit 1
-fi
-export CA_PASS=${PASS1}
+ask_passphrase "${CA_NAME}"
 
 pushd ${CA_DIR} > /dev/null
 
