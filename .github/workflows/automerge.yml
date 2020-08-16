@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------
+# Automerge pull requests for easy-ca
+# Author: Urs Roesch https://github.com/uroesch
+# Version: 0.2.0
+# -----------------------------------------------------------------------------
 name: automerge
 on:
   pull_request:
