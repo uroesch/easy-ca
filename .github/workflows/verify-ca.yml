@@ -1,13 +1,13 @@
 # -----------------------------------------------------------------------------
 # Verify easy-ca's CA and certification creation
 # Author: Urs Roesch https://github.com/uroesch
-# Version: 0.1.0 
+# Version: 0.1.0
 # -----------------------------------------------------------------------------
 name: verify-ca
 
 on:
   push:
-    branches: 
+    branches:
     - workflow/*
   pull_request:
     branches:
