@@ -1,5 +1,6 @@
 #!/bin/bash
 # Derek Moore <derek@ripple.com>
+# Urs Roesch <github@bun.ch>
 
 # -----------------------------------------------------------------------------
 # print horizontal line 80 chars wide
@@ -19,8 +20,6 @@ function message() {
   for message in "${messages[@]}"; do
     printf "${message}\n"
   done
-  delimiter
-  echo
 }
 
 # -----------------------------------------------------------------------------
@@ -90,13 +89,13 @@ function fullpath() {
 #
 # -----------------------------------------------------------------------------
 function template() {
-  local input=${1}; shift;
+  local template=${1}; shift;
   local output=${1}; shift;
   local regex=""
   for var in ${!CA_*}; do
     regex+="s#{{\s*${var}\s*}}#${!var}#g; "
   done
-  sed -e "${regex}" < ${input} > ${output}
+  sed -e "${regex}" < ${template} > ${output}
 }
 
 # -----------------------------------------------------------------------------
@@ -153,6 +152,7 @@ function init_ca_home() {
 # -----------------------------------------------------------------------------
 function generate_conf() {
   local dest=${1}; shift;
+  local CA_NAME=$(basename ${CA_DIR})
 
   echo -n "1. Short label for new CA [${CA_NAME}]: "
   read NAME
@@ -169,9 +169,7 @@ function generate_conf() {
     exit 1
   fi
 
-  echo
-  echo "CRL URL will be http://${CA_DOMAIN}/ca/${CA_NAME}.crl"
-  echo
+  message "CRL URL will be http://${CA_DOMAIN}/ca/${CA_NAME}.crl"
 
   echo -n "3. Default country code for new certificates [${CA_CERT_C}]: "
   read CERT_C
@@ -244,4 +242,46 @@ function ask_passphrase() {
     exit 1
   fi
   export CA_PASS=${pass1}
+}
+
+# -----------------------------------------------------------------------------
+# Generate the CA openssl config
+# -----------------------------------------------------------------------------
+function copy_ca_template() {
+  template "${BIN_DIR}/templates/root.tpl" "conf/ca.conf"
+}
+
+# -----------------------------------------------------------------------------
+# Create private key for the CA
+# -----------------------------------------------------------------------------
+function create_ca_key() {
+  # Create the signing CA key
+  openssl genrsa -out ca/private/ca.key -passout env:CA_PASS 2048
+  chmod 0400 ca/private/ca.key
+}
+
+# -----------------------------------------------------------------------------
+# Create certification request for the CA
+# -----------------------------------------------------------------------------
+function create_ca_csr() {
+  # Create the signing CA csr
+  openssl req \
+    -new \
+    -batch \
+    -config conf/ca.conf \
+    -key ca/private/ca.key \
+    -out ca/ca.csr \
+    -passin env:CA_PASS
+}
+
+# -----------------------------------------------------------------------------
+# Create the revokation list for the CA
+# -----------------------------------------------------------------------------
+function create_ca_crl() {
+  # Create the root CRL
+  openssl ca \
+    -gencrl \
+    -batch \
+    -config conf/ca.conf \
+    -out crl/ca.crl
 }

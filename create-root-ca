@@ -74,16 +74,8 @@ pushd ${CA_DIR} > /dev/null
 # Generate the root CA openssl config
 template "${BIN_DIR}/templates/root.tpl" "conf/ca.conf"
 
-# Create the root CA csr
-openssl genrsa -out ca/private/ca.key -passout env:CA_PASS 4096
-chmod 0400 ca/private/ca.key
-
-# Create the root CA csr
-openssl req -new -batch \
-            -config conf/ca.conf \
-            -key ca/private/ca.key \
-            -out ca/ca.csr \
-            -passin env:CA_PASS
+create_ca_key
+create_ca_csr
 
 # Create the root CA certificate
 openssl ca -selfsign -batch -notext \
@@ -94,15 +86,8 @@ openssl ca -selfsign -batch -notext \
            -extensions root_ca_ext \
            -passin env:CA_PASS
 
-# Create the root CRL
-openssl ca -gencrl -batch \
-           -config conf/ca.conf \
-           -out crl/ca.crl
+create_ca_crl
 
-# Replicate the existing binary directory
 copy_scripts
-
 popd > /dev/null
-
-
 message "Root CA initialized."
