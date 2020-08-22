@@ -85,16 +85,8 @@ pushd ${CA_DIR} > /dev/null
 # Generate the signing CA openssl config
 template "${BIN_DIR}/templates/signing.tpl" "conf/ca.conf"
 
-# Create the signing CA key
-openssl genrsa -out ca/private/ca.key -passout env:CA_PASS 2048
-chmod 0400 ca/private/ca.key
-
-# Create the signing CA csr
-openssl req -new -batch \
-            -config conf/ca.conf \
-            -key ca/private/ca.key \
-            -out ca/ca.csr \
-            -passin env:CA_PASS
+create_ca_key
+create_ca_csr
 
 # Create the signing CA certificate
 pushd ${PARENT} > /dev/null
@@ -107,10 +99,7 @@ openssl ca -batch -notext \
            -passin env:CA_PARENT_PASS
 popd > /dev/null
 
-# Create the signing CRL
-openssl ca -gencrl -batch \
-           -config conf/ca.conf \
-           -out crl/ca.crl
+create_ca_crl
 
 # Create the chain bundle if this is a sub-CA
 if [ -f "${PARENT}/ca/chain.pem" ]; then
