@@ -98,11 +98,7 @@ export SAN=${ALT_NAME}
 template "${BIN_DIR}/templates/server.tpl" "conf/${SAFE_NAME}.server.conf"
 
 # Create the server key and csr
-openssl req -new -nodes \
-            -config conf/${SAFE_NAME}.server.conf \
-            -keyout private/${SAFE_NAME}.server.key \
-            -out csr/${SAFE_NAME}.server.csr
-chmod 0400 private/${SAFE_NAME}.server.key
+create_csr "server" "${SAFE_NAME}"
 
 # Create the server certificate
 openssl ca -batch -notext \
