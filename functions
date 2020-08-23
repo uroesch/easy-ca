@@ -263,6 +263,21 @@ function create_ca_key() {
 # -----------------------------------------------------------------------------
 # Create certification request for the CA
 # -----------------------------------------------------------------------------
+function create_csr() {
+  local type=${1}; shift;
+  local safe_name=${1}; shift;
+  openssl req \
+    -new \
+    -nodes \
+    -config conf/${safe_name}.${type}.conf \
+    -keyout private/${safe_name}.${type}.key \
+    -out csr/${safe_name}.${type}.csr
+  chmod 0400 private/${safe_name}.${type}.key
+}
+
+# -----------------------------------------------------------------------------
+# Create certification request for the CA
+# -----------------------------------------------------------------------------
 function create_ca_csr() {
   # Create the signing CA csr
   openssl req \

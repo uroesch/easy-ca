@@ -90,11 +90,7 @@ export CA_USERNAME=${CLIENT_NAME}
 template "${BIN_DIR}/templates/client.tpl" "conf/${SAFE_NAME}.client.conf"
 
 # Create the client key and csr
-openssl req -new -nodes \
-            -config conf/${SAFE_NAME}.client.conf \
-            -keyout private/${SAFE_NAME}.client.key \
-            -out csr/${SAFE_NAME}.client.csr
-chmod 0400 private/${SAFE_NAME}.client.key
+create_csr "client" "${SAFE_NAME}"
 
 # Create the client certificate
 openssl ca -batch -notext \
