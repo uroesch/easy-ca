@@ -100,18 +100,9 @@ export CA_HOSTNAME=${SERVER_NAME}
 export SAN=${ALT_NAME}
 template "${BIN_DIR}/templates/ssl.tpl" "conf/${SAFE_NAME}.server.conf"
 
-# Create the server key and csr
+# Create the server key and csr and sign it
 create_csr "server" "${SAFE_NAME}"
-
-# Create the server certificate
-openssl ca -batch -notext \
-           -config conf/ca.conf \
-           -in csr/${SAFE_NAME}.server.csr \
-           -out certs/${SAFE_NAME}.server.crt \
-           -days 730 \
-           -extensions server_ext \
-           -passin env:CA_PASS
-
+sign_csr "server" "${SAFE_NAME}"
 popd > /dev/null
 
 message "Server certificate created."

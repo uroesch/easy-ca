@@ -75,18 +75,9 @@ export SAN=""
 export CA_USERNAME=${CLIENT_NAME}
 template "${BIN_DIR}/templates/client.tpl" "conf/${SAFE_NAME}.client.conf"
 
-# Create the client key and csr
+# Create the client key and csr and sign it
 create_csr "client" "${SAFE_NAME}"
-
-# Create the client certificate
-openssl ca -batch -notext \
-           -config conf/ca.conf \
-           -in csr/${SAFE_NAME}.client.csr \
-           -out certs/${SAFE_NAME}.client.crt \
-           -days 730 \
-           -extensions client_ext \
-           -passin env:CA_PASS
-
+sign_csr "client" "${SAFE_NAME}"
 popd > /dev/null
 
 message "Client certificate created."
