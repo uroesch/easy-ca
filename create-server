@@ -1,5 +1,6 @@
 #!/bin/bash
 # Derek Moore <derek.moore@gmail.com>
+# Changed by fcgdam
 
 # -----------------------------------------------------------------------------
 # Setup
@@ -12,6 +13,8 @@ set -o pipefail
 # Globals
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
+declare    CERT_TYPE=sever
+declare    CERT_DESCRIPTION="server"
 declare    SERVER_NAME=
 declare    ALT_NAME=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -26,7 +29,7 @@ function usage() {
   Usage:
     ${SCRIPT} -s SERVER_NAME [-a ALT_NAME]...
 
-  Issues a server certificate for SERVER_NAME
+  Issues a server ${CERT_DESCRIPTION} certificate for SERVER_NAME
 
   Options:
     -s SERVER_NAME  Server hostname (commonName) for the new cert
@@ -52,8 +55,8 @@ function parse_options() {
         ALT_NAME="${ALT_NAME}, DNS:${OPTARG}"
       fi
       ;;
-    h) usage 0 ;;
-    *) usage 1 ;;
+    h) usage 0;;
+    *) usage 1;;
     esac
   done
 }
@@ -64,11 +67,24 @@ function validate_options() {
   fi
 }
 
+function determine_operation_mode() {
+  case ${SCRIPT} in
+  *-server)
+    CERT_TYPE=server
+    CERT_DESCRIPTION="server"
+    ;;
+  *-ssl)
+    CERT_TYPE=ssl
+    CERT_DESCRIPTION="server SSL"
+    ;;
+  esac
+}
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 parse_options "${@}"
 validate_options
+determine_operation_mode
 
 source ${BIN_DIR}/functions
 source ${BIN_DIR}/defaults.conf
@@ -76,7 +92,8 @@ source ${BIN_DIR}/defaults.conf
 # Sanitize the commonName to make it suitable for use in filenames
 SAFE_NAME=$(to_safe_name "${SERVER_NAME}")
 
-message "Creating new SSL server certificate for:" \
+message \
+  "Creating new SSL server certificate for:" \
   "commonName: '${SERVER_NAME}'" \
   "subjectAltName: '${ALT_NAME}'"
 
@@ -95,7 +112,7 @@ export CA_PASS=${PASS}
 # Generate the server openssl config
 export CA_HOSTNAME=${SERVER_NAME}
 export SAN=${ALT_NAME}
-template "${BIN_DIR}/templates/server.tpl" "conf/${SAFE_NAME}.server.conf"
+template "${BIN_DIR}/templates/${CERT_TYPE}.tpl" "conf/${SAFE_NAME}.server.conf"
 
 # Create the server key and csr and sign it
 create_csr "server" "${SAFE_NAME}"

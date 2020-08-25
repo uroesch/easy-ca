@@ -26,12 +26,20 @@ function test::setup() {
 }
 
 function test::alternatives() {
-  local options=( "${@}" ) 
+  local options=( "${@}" )
   local alternatives=
   for option in "${options[@]}"; do
     alternatives+="-a ${option}"
-  done 
+  done
   echo ${alternatives}
+}
+
+function test::dump_certificate() {
+  local certificate=${1}; shift;
+  openssl x509 \
+    -noout \
+    -text \
+    -in ${SIGNING_CA_DIR}/certs/${certificate}
 }
 
 function test::create_root_ca() {
@@ -49,7 +57,7 @@ function test::create_server_certificate() {
   local alternatives=$(test::alternatives "${@}")
   printf "%0.0s\n" {0..6} | \
     ${SIGNING_CA_DIR}/bin/create-server -s "${server_name}" ${alternatives}
-      
+
 }
 
 function test::create_ssl_certificate() {
@@ -57,6 +65,12 @@ function test::create_ssl_certificate() {
   local alternatives=$(test::alternatives "${@}")
   printf "%0.0s\n" {0..6} | \
     ${SIGNING_CA_DIR}/bin/create-ssl -s ${server_name} ${alternatives}
+}
+
+function test::verify_ssl_certificate() {
+  local certificate=${1}; shift;
+  test::dump_certificate "${certificate}" | \
+    grep -q "Netscape Cert Type"
 }
 
 function test::create_client_certificate() {
@@ -67,7 +81,7 @@ function test::create_client_certificate() {
 }
 
 function test::revoke_certificate() {
-  local certificate=${1}; shift; 
+  local certificate=${1}; shift;
   printf "1\ny\n" | \
     ${SIGNING_CA_DIR}/bin/revoke-cert \
     -c ${SIGNING_CA_DIR}/certs/${certificate}
@@ -88,13 +102,13 @@ function test::final_message() {
     echo There were errors while executing the test suite
     echo ${DELIMITER}
     echo -e "\e[0m"
-  else 
+  else
     echo -e "\e[32m"
     echo ${DELIMITER}
     echo All tests passed
     echo ${DELIMITER}
     echo -e "\e[0m"
-  fi 
+  fi
   exit ${exit_code}
 }
 
@@ -106,6 +120,7 @@ test::create_root_ca
 test::create_signing_ca
 test::create_server_certificate '*.acme.com' 'acme.com'
 test::create_ssl_certificate 'ssl.acme.com' 'acme.com'
+test::verify_ssl_certificate 'ssl-acme-com.server.crt'
 test::create_client_certificate 'bob' 'bob_builder'
 test::revoke_certificate 'star-acme-com.server.crt'
 test::revoke_certificate 'ssl-acme-com.server.crt'
