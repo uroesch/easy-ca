@@ -51,14 +51,19 @@ function validate_options() {
   fi
 }
 
+function source_files() {
+  source ${BIN_DIR}/functions
+  [[ -f "${BIN_DIR}/defaults.conf" ]] &&
+    source ${BIN_DIR}/defaults.conf
+}
+
+
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 parse_options "${@}"
 validate_options
-
-source ${BIN_DIR}/functions
-source ${BIN_DIR}/defaults.conf
+source_files
 
 message "Revoking certificate '${CERT}'"
 

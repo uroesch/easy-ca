@@ -79,15 +79,20 @@ function determine_operation_mode() {
     ;;
   esac
 }
+
+function source_files() {
+  source ${BIN_DIR}/functions
+  [[ -f "${BIN_DIR}/defaults.conf" ]] &&
+    source ${BIN_DIR}/defaults.conf
+}
+
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 parse_options "${@}"
 validate_options
 determine_operation_mode
-
-source ${BIN_DIR}/functions
-source ${BIN_DIR}/defaults.conf
+source_files
 
 # Sanitize the commonName to make it suitable for use in filenames
 SAFE_NAME=$(to_safe_name "${SERVER_NAME}")
