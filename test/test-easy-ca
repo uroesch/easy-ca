@@ -42,6 +42,15 @@ function test::dump_certificate() {
     -in ${SIGNING_CA_DIR}/certs/${certificate}
 }
 
+function test::fetch_serial() {
+  local certificate=${1}; shift;
+  openssl x509 \
+    -noout \
+    -serial \
+    -in ${SIGNING_CA_DIR}/certs/${certificate} | \
+    awk -F = '{print $2}'
+}
+
 function test::create_root_ca() {
   printf "%0.0s\n" {0..10} | \
     ${WORK_DIR}/create-root-ca -d ${ROOT_CA_DIR}
@@ -87,6 +96,17 @@ function test::revoke_certificate() {
     -c ${SIGNING_CA_DIR}/certs/${certificate}
 }
 
+function test::verify_revokation() {
+  local certificate=${1}; shift;
+  local serial=$(test::fetch_serial ${certificate})
+
+  openssl crl \
+    -noout \
+    -text \
+    -in ${SIGNING_CA_DIR}/crl/ca.crl | \
+    grep -q "Serial Number: ${serial}"
+}
+
 function test::usage() {
   local scripts=( "${@}" )
   for script in "${scripts[@]}"; do
@@ -123,8 +143,11 @@ test::create_ssl_certificate 'ssl.acme.com' 'acme.com'
 test::verify_ssl_certificate 'ssl-acme-com.server.crt'
 test::create_client_certificate 'bob' 'bob_builder'
 test::revoke_certificate 'star-acme-com.server.crt'
+test::verify_revokation 'star-acme-com.server.crt'
 test::revoke_certificate 'ssl-acme-com.server.crt'
+test::verify_revokation 'ssl-acme-com.server.crt'
 test::revoke_certificate 'bob-builder.client.crt'
+test::verify_revokation 'bob-builder.client.crt'
 test::usage \
   create-client \
   create-client-o \
