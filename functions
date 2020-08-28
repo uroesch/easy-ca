@@ -245,6 +245,23 @@ function ask_passphrase() {
 }
 
 # -----------------------------------------------------------------------------
+# Passphrase dialog for exporting CA
+# -----------------------------------------------------------------------------
+function ask_ca_passphrase() {
+  local ca_name=${1:-signing}
+
+  echo
+  echo -n "Enter passphrase for ${ca_name} CA key: "
+  read -s ca_pass
+  echo
+
+  case ${ca_name} in
+  signing) export CA_PASS=${ca_pass};;
+  root)    export CA_PARENT_PASS=${ca_pass};;
+  esac
+}
+
+# -----------------------------------------------------------------------------
 # Generate the CA openssl config
 # -----------------------------------------------------------------------------
 function copy_ca_template() {
