@@ -79,7 +79,6 @@ function ask_revoke_reason() {
   PS3="Enter 1-${#reasons[@]}: "
   echo "Reason for revocation: "
   select reason in ${reasons[@]}; do
-    set -x
     if (( ${REPLY} > ${#reasons[@]} )); then
       echo "Unknown reason, exiting."
       exit 128
