@@ -109,10 +109,7 @@ if [ -f conf/${SAFE_NAME}.server.conf ]; then
     exit 1
 fi
 
-echo -n "Enter passphrase for signing CA key: "
-read -s PASS
-echo
-export CA_PASS=${PASS}
+ask_ca_passphrase 'signing'
 
 # Generate the server openssl config
 export CA_HOSTNAME=${SERVER_NAME}
@@ -123,5 +120,4 @@ template "${BIN_DIR}/templates/${CERT_TYPE}.tpl" "conf/${SAFE_NAME}.server.conf"
 create_csr "server" "${SAFE_NAME}"
 sign_csr "server" "${SAFE_NAME}"
 popd > /dev/null
-
 message "Server certificate created."

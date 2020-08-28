@@ -74,13 +74,7 @@ init_ca_home ${CA_DIR}
 generate_conf ${CA_DIR}/bin/defaults.conf
 source ${CA_DIR}/bin/defaults.conf
 ask_passphrase "${CA_NAME}"
-
-echo
-
-echo -n "Enter passphrase for root CA key: "
-read -s PARENT_PASS
-echo
-export CA_PARENT_PASS=${PARENT_PASS}
+ask_ca_passphrase 'root'
 
 # Fully-qualify home to we can return to it later
 CA_DIR=$(cd "${CA_DIR}" && pwd)
