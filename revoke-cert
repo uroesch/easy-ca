@@ -66,31 +66,27 @@ function check_certificate() {
 }
 
 function ask_revoke_reason() {
+  local -a reasons=(
+    unspecified
+    keyCompromise
+    CACompromise
+    affiliationChanged
+    superseded
+    cessationOfOperation
+    certificateHold
+  )
+
+  PS3="Enter 1-${#reasons[@]}: "
   echo "Reason for revocation: "
-  echo
-  echo "1. unspecified"
-  echo "2. keyCompromise"
-  echo "3. CACompromise"
-  echo "4. affiliationChanged"
-  echo "5. superseded"
-  echo "6. cessationOfOperation"
-  echo "7. certificateHold"
-  echo
-  echo -n "Enter 1-7 [1]: "
-  read INDEX
-
-  [ -z "${INDEX}" ] && INDEX="1"
-
-  case $INDEX in
-  1) REASON="unspecified" ;;
-  2) REASON="keyCompromise" ;;
-  3) REASON="CACompromise" ;;
-  4) REASON="affiliationChanged" ;;
-  5) REASON="superseded" ;;
-  6) REASON="cessationOfOperation" ;;
-  7) REASON="certificateHold" ;;
-  8) echo "Unknown reason, exiting."; exit 1 ;;
-  esac
+  select reason in ${reasons[@]}; do
+    set -x
+    if (( ${REPLY} > ${#reasons[@]} )); then
+      echo "Unknown reason, exiting."
+      exit 128
+    fi
+    REASON=${reason}
+    break
+  done
 
   echo "You are about to revoke this certificate with reason '${REASON}'."
   echo -n "Are you SURE you wish to continue? [y/N]: "
