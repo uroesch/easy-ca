@@ -82,8 +82,7 @@ CA_DIR=$(cd "${CA_DIR}" && pwd)
 pushd ${CA_DIR} > /dev/null
 
 # Generate the signing CA openssl config
-template "${BIN_DIR}/templates/signing.tpl" "conf/ca.conf"
-
+copy_ca_template "signing"
 create_ca_key
 create_ca_csr
 

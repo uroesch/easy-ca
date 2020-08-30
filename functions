@@ -265,7 +265,8 @@ function ask_ca_passphrase() {
 # Generate the CA openssl config
 # -----------------------------------------------------------------------------
 function copy_ca_template() {
-  template "${BIN_DIR}/templates/root.tpl" "conf/ca.conf"
+  local ca_type=${1:-root}
+  template "${BIN_DIR}/templates/${ca_type}.tpl" "conf/ca.conf"
 }
 
 # -----------------------------------------------------------------------------

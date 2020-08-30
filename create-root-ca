@@ -77,8 +77,7 @@ ask_passphrase "${CA_NAME}"
 pushd ${CA_DIR} > /dev/null
 
 # Generate the root CA openssl config
-template "${BIN_DIR}/templates/root.tpl" "conf/ca.conf"
-
+copy_ca_template "root"
 create_ca_key
 create_ca_csr
 
