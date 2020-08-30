@@ -16,6 +16,7 @@ declare -r SCRIPT=${0##*/}
 declare    CLIENT_NAME=
 declare    CERT_NAME=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+declare -x SAN=""
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -62,6 +63,18 @@ function source_files() {
     source ${BIN_DIR}/defaults.conf
 }
 
+
+function create_client_conf() {
+  # Generate the client cert openssl config
+  export CA_USERNAME=${CLIENT_NAME}
+  template "${BIN_DIR}/templates/client.tpl" "conf/${SAFE_NAME}.client.conf"
+  if [[ -z ${SAN} ]]; then
+    sed -i -e 's/^\(subjectAltName.*=.*\)/#\1/' \
+      "conf/${SAFE_NAME}.client.conf"
+  fi
+}
+
+
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
@@ -88,10 +101,7 @@ fi
 #export CA_PASS=${PASS}
 export CA_PASS=""
 
-# Generate the client cert openssl config
-export SAN=""
-export CA_USERNAME=${CLIENT_NAME}
-template "${BIN_DIR}/templates/client.tpl" "conf/${SAFE_NAME}.client.conf"
+create_client_conf
 
 # Create the client key and csr and sign it
 create_csr "client" "${SAFE_NAME}"
