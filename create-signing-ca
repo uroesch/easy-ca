@@ -57,6 +57,17 @@ function source_files() {
     source ${BIN_DIR}/defaults.conf
 }
 
+function create_signing_ca_certificate() {
+  openssl ca \
+    -batch \
+    -notext \
+    -config conf/ca.conf \
+    -in ${CA_DIR}/ca/ca.csr \
+    -out ${CA_DIR}/ca/ca.crt \
+    -days 3652 \
+    -extensions signing_ca_ext \
+    -passin env:CA_PARENT_PASS
+}
 
 # -----------------------------------------------------------------------------
 # Main
@@ -64,49 +75,31 @@ function source_files() {
 parse_options "${@}"
 validate_options
 source_files
-
 PARENT=${BIN_DIR}/..
 CA_NAME=$( basename "${CA_DIR}" )
-
 message "Creating new signing sub-CA in '${CA_DIR}'"
-
 init_ca_home ${CA_DIR}
 generate_conf ${CA_DIR}/bin/defaults.conf
 source ${CA_DIR}/bin/defaults.conf
 ask_passphrase "${CA_NAME}"
 ask_ca_passphrase 'root'
-
 # Fully-qualify home to we can return to it later
 CA_DIR=$(cd "${CA_DIR}" && pwd)
-
 pushd ${CA_DIR} > /dev/null
-
 # Generate the signing CA openssl config
 copy_ca_template "signing"
 create_ca_key
 create_ca_csr
-
 # Create the signing CA certificate
 pushd ${PARENT} > /dev/null
-openssl ca -batch -notext \
-           -config conf/ca.conf \
-           -in ${CA_DIR}/ca/ca.csr \
-           -out ${CA_DIR}/ca/ca.crt \
-           -days 3652 \
-           -extensions signing_ca_ext \
-           -passin env:CA_PARENT_PASS
+create_signing_ca_certificate
 popd > /dev/null
-
 create_ca_crl
-
 # Create the chain bundle if this is a sub-CA
 if [ -f "${PARENT}/ca/chain.pem" ]; then
     cat ${PARENT}/ca/chain.pem > ca/chain.pem
 fi
 cat ca/ca.crt >> ca/chain.pem
-
 copy_scripts
-
 popd > /dev/null
-
 message "Signing sub-CA initialized."
