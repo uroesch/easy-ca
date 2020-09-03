@@ -63,6 +63,12 @@ function source_files() {
     source ${BIN_DIR}/defaults.conf
 }
 
+function check_existing() {
+ if [[ -f conf/${SAFE_NAME}.client.conf ]]; then
+   echo "Configuration already exists for '${CERT_NAME}', exiting."
+   exit 1
+ fi
+}
 
 function create_client_conf() {
   # Generate the client cert openssl config
@@ -87,13 +93,8 @@ SAFE_NAME=$(to_safe_name "${CERT_NAME}")
 message "Creating new client certificate for '${CLIENT_NAME}' with:" \
   "CERT_NAME: '${CERT_NAME}'" \
   "CLIENT_NAME: '${CLIENT_NAME}'"
-
 pushd ${BIN_DIR}/.. > /dev/null
-
-if [ -f conf/${SAFE_NAME}.client.conf ]; then
-    echo "Configuration already exists for '${CERT_NAME}', exiting."
-    exit 1
-fi
+check_existing
 
 #echo -n "Enter passphrase for signing CA key: "
 #read -s PASS
