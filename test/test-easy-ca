@@ -12,15 +12,57 @@ trap test::final_message EXIT
 # -----------------------------------------------------------------------------
 # Globals
 # -----------------------------------------------------------------------------
+declare -r TEST_SCRIPT=${0##*/}
 declare -r WORK_DIR="$(dirname ${0})/.."
-declare -r BASE_DIR=${HOME}/tmp/easy-ca-${RANDOM}
+declare -r TEMP_DIR=${HOME}/tmp
+declare -r PREFIX_DIR=easy-ca-
+declare -r BASE_DIR=${TEMP_DIR}/${PREFIX_DIR}${RANDOM}
 declare -r ROOT_CA_DIR=${BASE_DIR}/root
 declare -r SIGNING_CA_DIR=${BASE_DIR}/signing
 declare -r DELIMITER=$(printf "%0.1s" -{1..80})
+declare    FINAL_MESSAGE=true
 
 # -----------------------------------------------------------------------------
 # Functions
 # -----------------------------------------------------------------------------
+function usage() {
+  local exit_code=${1:-1}
+  FINAL_MESSAGE=false
+  cat <<USAGE
+
+  Usage:
+    ${TEST_SCRIPT} [options]
+
+  Options:
+    -c | --clean   Cleanup previous test directories
+    -h | --help    This message
+
+USAGE
+  exit ${exit_code}
+}
+
+function parse_options() {
+  (( ${#} == 0 )) && return 0
+  while (( ${#} > 0 )); do
+    case ${1} in
+    -c|--clean) test::clean;;
+    -h|--help)  usage 0;;
+    *)          usage 0;;
+    esac
+    shift
+  done
+}
+
+function test::clean() {
+  local dirs=$(find ${TEMP_DIR} -maxdepth 1 -type d -name "${PREFIX_DIR}*")
+  for dir in ${dirs}; do
+    echo "Removing directory '${dir}'"
+    rm -rf ${dir}
+  done
+  FINAL_MESSAGE=false
+  exit 0
+}
+
 function test::setup() {
   [[ ! -d ${BASE_DIR} ]] && mkdir -p ${BASE_DIR}
 }
@@ -116,6 +158,7 @@ function test::usage() {
 
 function test::final_message() {
   local exit_code=$?
+  [[ FINAL_MEASSAGE != true ]] && return 0
   if (( ${exit_code} > 0 )); then
     echo -e "\e[31m"
     echo ${DELIMITER}
@@ -135,6 +178,7 @@ function test::final_message() {
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
+parse_options "${@}"
 test::setup
 test::create_root_ca
 test::create_signing_ca
