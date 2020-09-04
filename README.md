@@ -1,3 +1,8 @@
+[![Build](https://github.com/uroesch/easy-ca/workflows/verify-ca/badge.svg)](https://github.com/uroesch/easy-ca/actions?query=workflow%3Averify-ca)
+<!-- [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/uroesch/easy-ca?include_prereleases)](https://github.com/uroesch/easy-ca/releases) -->
+[![Runs on](https://img.shields.io/badge/runs%20on-Linux%20%26%20macOS-blue)](#runtime-dependencies)
+<!-- ![GitHub All Releases](https://img.shields.io/github/downloads/uroesch/easy-ca/total?style=flat) -->
+
 # easy-ca
 OpenSSL wrapper scripts for managing basic CA functions
 
