@@ -18,6 +18,7 @@ declare    CERT_NAME=
 declare    SAFE_NAME=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare -x SAN=""
+declare -x CA_PASS=""
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -98,18 +99,8 @@ message "Creating new client certificate for '${CLIENT_NAME}' with:" \
   "CLIENT_NAME: '${CLIENT_NAME}'"
 pushd ${BIN_DIR}/.. > /dev/null
 check_existing
-
-#echo -n "Enter passphrase for signing CA key: "
-#read -s PASS
-#echo
-#export CA_PASS=${PASS}
-export CA_PASS=""
-
 create_client_conf
-
-# Create the client key and csr and sign it
 create_csr "client" "${SAFE_NAME}"
 sign_csr "client" "${SAFE_NAME}"
 popd > /dev/null
-
 message "Client certificate created."

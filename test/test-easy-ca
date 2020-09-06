@@ -158,7 +158,7 @@ function test::usage() {
 
 function test::final_message() {
   local exit_code=$?
-  [[ FINAL_MEASSAGE != true ]] && return 0
+  [[ ${FINAL_MESSAGE} != true ]] && return 0
   if (( ${exit_code} > 0 )); then
     echo -e "\e[31m"
     echo ${DELIMITER}
