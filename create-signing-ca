@@ -69,6 +69,16 @@ function create_signing_ca_certificate() {
     -passin env:CA_PARENT_PASS
 }
 
+function create_ca_chain() {
+  # Create the chain bundle if this is a sub-CA
+  if [[ -f ${PARENT}/ca/chain.pem ]]; then
+    cat ${PARENT}/ca/chain.pem > ca/chain.pem
+  elif [[ -f ${PARENT}/ca/ca.crt ]]; then
+    cat ${PARENT}/ca/ca.crt > ca/chain.pem
+  fi
+  cat ca/ca.crt >> ca/chain.pem
+}
+
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
@@ -95,11 +105,7 @@ pushd ${PARENT} > /dev/null
 create_signing_ca_certificate
 popd > /dev/null
 create_ca_crl
-# Create the chain bundle if this is a sub-CA
-if [ -f "${PARENT}/ca/chain.pem" ]; then
-    cat ${PARENT}/ca/chain.pem > ca/chain.pem
-fi
-cat ca/ca.crt >> ca/chain.pem
 copy_scripts
+create_ca_chain
 popd > /dev/null
 message "Signing sub-CA initialized."
