@@ -131,6 +131,12 @@ function test::create_client_certificate() {
     ${SIGNING_CA_DIR}/bin/create-client -c ${client_name} -n ${cert_name}
 }
 
+function test::create_client_o_certificate() {
+  local client_name=${1}; shift;
+  printf "%0.0s\n" {0..6} | \
+    ${SIGNING_CA_DIR}/bin/create-client-o -c ${client_name}
+}
+
 function test::revoke_certificate() {
   local certificate=${1}; shift;
   printf "1\ny\n" | \
@@ -186,6 +192,7 @@ test::create_server_certificate '*.acme.com' 'acme.com'
 test::create_ssl_certificate 'ssl.acme.com' 'acme.com'
 test::verify_ssl_certificate 'ssl-acme-com.server.crt'
 test::create_client_certificate 'bob' 'bob_builder'
+test::create_client_o_certificate 'jane'
 test::revoke_certificate 'star-acme-com.server.crt'
 test::verify_revokation 'star-acme-com.server.crt'
 test::revoke_certificate 'ssl-acme-com.server.crt'
