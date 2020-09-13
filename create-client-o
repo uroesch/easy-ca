@@ -54,13 +54,6 @@ function create_safe_name() {
   SAFE_NAME=$(to_safe_name "${CERT_NAME}")
 }
 
-function check_existing() {
- if [[ -f conf/${SAFE_NAME}.client.conf ]]; then
-   echo "Configuration already exists for '${CERT_NAME}', exiting."
-   exit 1
- fi
-}
-
 function create_client_conf() {
   # Generate the client cert openssl config
   export CA_USERNAME=${CLIENT_NAME}
@@ -80,7 +73,7 @@ source_files
 create_safe_name
 message "Creating new client certificate for '${CLIENT_NAME}'"
 pushd ${BIN_DIR}/.. > /dev/null
-check_existing
+check_existing_configuration "${SAFE_NAME}" client
 create_client_conf
 ask_ca_passphrase 'signing'
 create_csr "client" "${SAFE_NAME}"

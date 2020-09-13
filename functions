@@ -99,6 +99,18 @@ function template() {
 }
 
 # -----------------------------------------------------------------------------
+# Check if configuration for certificate already exists.
+# -----------------------------------------------------------------------------
+function check_existing_configuration() {
+ local safe_name=${1}; shift;
+ local type=${1}; shift;
+ if [[ -f conf/${safe_name}.${type}.conf ]]; then
+   echo "Configuration already exists for '${CERT_NAME}', exiting."
+   exit 1
+ fi
+}
+
+# -----------------------------------------------------------------------------
 # init_ca_home CA_PATH
 #
 # Initializes a CA directory skeleton at PATH
