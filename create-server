@@ -104,11 +104,7 @@ message \
 
 pushd ${BIN_DIR}/.. > /dev/null
 
-if [ -f conf/${SAFE_NAME}.server.conf ]; then
-    echo "Configuration already exists for '${SERVER_NAME}', exiting."
-    exit 1
-fi
-
+check_existing_configuration "${SAFE_NAME}" server
 ask_ca_passphrase 'signing'
 
 # Generate the server openssl config
