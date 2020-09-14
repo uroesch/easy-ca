@@ -2,11 +2,20 @@
 # Derek Moore <derek.moore@gmail.com>
 
 # -----------------------------------------------------------------------------
+# Setup
+# -----------------------------------------------------------------------------
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# -----------------------------------------------------------------------------
 # Globals
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
 declare    CLIENT_NAME=
+declare    SAFE_NAME=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+declare -x SAN=""
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -51,7 +60,7 @@ function source_files() {
 }
 
 function create_safe_name() {
-  SAFE_NAME=$(to_safe_name "${CERT_NAME}")
+  SAFE_NAME=$(to_safe_name "${CLIENT_NAME}")
 }
 
 function create_client_conf() {
