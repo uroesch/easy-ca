@@ -13,8 +13,8 @@ set -o pipefail
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
 declare -x SAN=${SAN:-}
+declare -r BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare    CA_DIR=
-declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -77,14 +77,12 @@ function create_root_ca_certificate() {
 parse_options "${@}"
 validate_options
 source_files
-CA_NAME=$( basename "${CA_DIR}" )
 message "Creating root CA in '${CA_DIR}'"
-init_ca_home ${CA_DIR}
-generate_conf ${CA_DIR}/bin/defaults.conf
-source ${CA_DIR}/bin/defaults.conf
-ask_passphrase "${CA_NAME}"
-pushd ${CA_DIR} > /dev/null
-# Generate the root CA openssl config
+init_ca_home "${CA_DIR}"
+generate_conf "${CA_DIR}/bin/defaults.conf"
+source "${CA_DIR}/bin/defaults.conf"
+ask_passphrase "root"
+pushd "${CA_DIR}" > /dev/null
 copy_ca_template "root"
 create_ca_key
 create_ca_csr
