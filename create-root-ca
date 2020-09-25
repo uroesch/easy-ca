@@ -39,8 +39,8 @@ function parse_options() {
   while getopts hd: flag; do
     case ${flag} in
     d) CA_DIR=${OPTARG} ;;
-    h) usage 0;;
-    *) usage 1;;
+    h) usage 0 ;;
+    *) usage 1 ;;
     esac
   done
 }

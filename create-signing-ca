@@ -8,14 +8,13 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-
 # -----------------------------------------------------------------------------
 # Globals
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
 declare -x SAN=${SAN:-}
+declare -r BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare    CA_DIR=
-declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare    PARENT=${BIN_DIR}/..
 
 # -----------------------------------------------------------------------------
@@ -24,6 +23,7 @@ declare    PARENT=${BIN_DIR}/..
 function usage() {
   local exit_code=${1:-1}
   cat <<USAGE
+
   Usage:
     ${SCRIPT} -d CA_DIR
 
@@ -39,9 +39,9 @@ USAGE
 function parse_options() {
   while getopts hd: flag; do
     case ${flag} in
-    d) CA_DIR=${OPTARG};;
-    h) usage 0;;
-    *) usage 1;;
+    d) CA_DIR=${OPTARG} ;;
+    h) usage 0 ;;
+    *) usage 1 ;;
     esac
   done
 }
