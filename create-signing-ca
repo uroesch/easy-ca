@@ -16,6 +16,7 @@ declare -r SCRIPT=${0##*/}
 declare -x SAN=${SAN:-}
 declare    CA_DIR=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+declare    PARENT=${BIN_DIR}/..
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -58,6 +59,7 @@ function source_files() {
 }
 
 function create_signing_ca_certificate() {
+  pushd ${PARENT} > /dev/null
   openssl ca \
     -batch \
     -notext \
@@ -67,6 +69,7 @@ function create_signing_ca_certificate() {
     -days 3652 \
     -extensions signing_ca_ext \
     -passin env:CA_PARENT_PASS
+  popd > /dev/null
 }
 
 function create_ca_chain() {
@@ -85,25 +88,17 @@ function create_ca_chain() {
 parse_options "${@}"
 validate_options
 source_files
-PARENT=${BIN_DIR}/..
-CA_NAME=$( basename "${CA_DIR}" )
 message "Creating new signing sub-CA in '${CA_DIR}'"
-init_ca_home ${CA_DIR}
-generate_conf ${CA_DIR}/bin/defaults.conf
-source ${CA_DIR}/bin/defaults.conf
-ask_passphrase "${CA_NAME}"
-ask_ca_passphrase 'root'
-# Fully-qualify home to we can return to it later
-CA_DIR=$(cd "${CA_DIR}" && pwd)
-pushd ${CA_DIR} > /dev/null
-# Generate the signing CA openssl config
+init_ca_home "${CA_DIR}"
+generate_conf "${CA_DIR}/bin/defaults.conf"
+source "${CA_DIR}/bin/defaults.conf"
+ask_passphrase "signing"
+ask_ca_passphrase "root"
+pushd "${CA_DIR}" > /dev/null
 copy_ca_template "signing"
 create_ca_key
 create_ca_csr
-# Create the signing CA certificate
-pushd ${PARENT} > /dev/null
 create_signing_ca_certificate
-popd > /dev/null
 create_ca_crl
 copy_scripts
 create_ca_chain
