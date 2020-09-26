@@ -53,6 +53,10 @@ function parse_options() {
   done
 }
 
+function module_name() {
+  echo ${FUNCNAME[2]}
+}
+
 function test::clean() {
   local dirs=$(find ${TEMP_DIR} -maxdepth 1 -type d -name "${PREFIX_DIR}*")
   for dir in ${dirs}; do
@@ -108,7 +112,6 @@ function test::create_server_certificate() {
   local alternatives=$(test::alternatives "${@}")
   printf "%0.0s\n" {0..6} | \
     ${SIGNING_CA_DIR}/bin/create-server -s "${server_name}" ${alternatives}
-
 }
 
 function test::create_ssl_certificate() {
@@ -168,7 +171,7 @@ function test::final_message() {
   if (( ${exit_code} > 0 )); then
     echo -e "\e[31m"
     echo ${DELIMITER}
-    echo There were errors while executing the test suite
+    echo "There were errors in '$(module_name)' while executing the test suite"
     echo ${DELIMITER}
     echo -e "\e[0m"
   else
