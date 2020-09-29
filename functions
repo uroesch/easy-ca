@@ -261,6 +261,8 @@ function ask_passphrase() {
 # -----------------------------------------------------------------------------
 function ask_ca_passphrase() {
   local ca_name=${1:-signing}
+  # only use for non root CA requests
+  [[ ${CA_TYPE:-} == root ]] && return 0 
 
   echo
   echo -n "Enter passphrase for ${ca_name} CA key: "

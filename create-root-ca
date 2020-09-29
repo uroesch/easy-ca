@@ -15,6 +15,7 @@ declare -r SCRIPT=${0##*/}
 declare -x SAN=${SAN:-}
 declare -r BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare    CA_DIR=
+declare    PARENT=${BIN_DIR}/..
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -26,7 +27,7 @@ function usage() {
   Usage:
     ${SCRIPT} -d CA_DIR
 
-  Initializes a new root CA in CA_DIR
+  Initializes a new ${CA_DESCRIPTION} in CA_DIR
 
   Options:
     -d CA_DIR  Target directory to be created and initialized
@@ -51,6 +52,19 @@ function validate_options() {
   fi
 }
 
+function determine_operation_mode() {
+  case ${SCRIPT} in
+  *-root-ca)
+    CA_TYPE=root
+    CA_DESCRIPTION="${CA_TYPE} CA"
+    ;;
+  *-signing-ca)
+    CA_TYPE=signing
+    CA_DESCRIPTION="${CA_TYPE} sub-CA"
+    ;;
+  esac
+}
+
 function source_files() {
   source ${BIN_DIR}/functions
   [[ -f "${BIN_DIR}/defaults.conf" ]] &&
@@ -71,23 +85,61 @@ function create_root_ca_certificate() {
     -passin env:CA_PASS
 }
 
+function create_signing_ca_certificate() {
+  pushd ${PARENT} > /dev/null
+  openssl ca \
+    -batch \
+    -notext \
+    -config conf/ca.conf \
+    -in ${CA_DIR}/ca/ca.csr \
+    -out ${CA_DIR}/ca/ca.crt \
+    -days 3652 \
+    -extensions signing_ca_ext \
+    -passin env:CA_PARENT_PASS
+  popd > /dev/null
+}
+
+function create_ca_chain() {
+  # Create the chain bundle if this is a sub-CA
+  if [[ -f ${PARENT}/ca/chain.pem ]]; then
+    cat ${PARENT}/ca/chain.pem > ca/chain.pem
+  elif [[ -f ${PARENT}/ca/ca.crt ]]; then
+    cat ${PARENT}/ca/ca.crt > ca/chain.pem
+  fi
+  cat ca/ca.crt >> ca/chain.pem
+}
+
+function create_ca_certificate() {
+  case ${CA_TYPE} in
+  root)
+    create_root_ca_certificate
+    ;;
+  signing)
+    create_signing_ca_certificate
+    create_ca_chain
+    ;;
+  esac
+}
+
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
+determine_operation_mode
 parse_options "${@}"
 validate_options
 source_files
-message "Creating root CA in '${CA_DIR}'"
+message "Creating new ${CA_DESCRIPTION} in '${CA_DIR}'"
 init_ca_home "${CA_DIR}"
 generate_conf "${CA_DIR}/bin/defaults.conf"
 source "${CA_DIR}/bin/defaults.conf"
-ask_passphrase "root"
+ask_passphrase "${CA_TYPE}"
+ask_ca_passphrase "root"
 pushd "${CA_DIR}" > /dev/null
-copy_ca_template "root"
+copy_ca_template "${CA_TYPE}"
 create_ca_key
 create_ca_csr
-create_root_ca_certificate
+create_ca_certificate
 create_ca_crl
 copy_scripts
 popd > /dev/null
-message "Root CA initialized."
+message "${CA_DESCRIPTION} initialized."
