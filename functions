@@ -288,7 +288,7 @@ function copy_ca_template() {
 # -----------------------------------------------------------------------------
 function create_ca_key() {
   # Create the signing CA key
-  openssl genrsa -out ca/private/ca.key -passout env:CA_PASS 2048
+  openssl genrsa -aes256 -out ca/private/ca.key -passout env:CA_PASS 2048
   chmod 0400 ca/private/ca.key
 }
 
