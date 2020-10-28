@@ -159,7 +159,7 @@ function test::verify_revokation() {
 }
 
 function test::usage() {
-  local scripts=( "${@}" )
+  local -a scripts=( "$@" )
   for script in "${scripts[@]}"; do
     ${SIGNING_CA_DIR}/bin/${script} -h
   done

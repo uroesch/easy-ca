@@ -93,7 +93,7 @@ function template() {
   local output=${1}; shift;
   local regex=""
   for var in ${!CA_*}; do
-    regex+="s#{{\s*${var}\s*}}#${!var}#g; "
+    regex="${regex} s#{{\s*${var}\s*}}#${!var}#g; "
   done
   sed -e "${regex}" < ${template} > ${output}
 }
