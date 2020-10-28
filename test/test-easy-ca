@@ -187,7 +187,7 @@ function test::final_message() {
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
-parse_options "${@}"
+parse_options "$@"
 test::setup
 test::create_root_ca
 test::create_signing_ca
