@@ -159,7 +159,7 @@ function test::verify_revokation() {
 }
 
 function test::usage() {
-  local scripts=( "${@}" )
+  local -a scripts=( "$@" )
   for script in "${scripts[@]}"; do
     ${SIGNING_CA_DIR}/bin/${script} -h
   done
@@ -187,7 +187,7 @@ function test::final_message() {
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
-parse_options "${@}"
+parse_options "$@"
 test::setup
 test::create_root_ca
 test::create_signing_ca
