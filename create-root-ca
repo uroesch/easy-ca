@@ -16,6 +16,7 @@ declare -x SAN=${SAN:-}
 declare -r BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare    CA_DIR=
 declare    PARENT=${BIN_DIR}/..
+declare    CA_KEY_CIPHER=${CA_KEY_CIPHER:-}
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -72,6 +73,7 @@ function source_files() {
 }
 
 function create_root_ca_certificate() {
+  message "Create ${CA_TYPE} CA certificate '$(pwd)/ca/ca.crt'"
   # Create the root CA certificate
   openssl ca \
     -selfsign \
@@ -86,6 +88,7 @@ function create_root_ca_certificate() {
 }
 
 function create_signing_ca_certificate() {
+  message "Create ${CA_TYPE} CA certrificate '${CA_DIR}/ca/ca.crt'"
   pushd ${PARENT} > /dev/null
   openssl ca \
     -batch \
