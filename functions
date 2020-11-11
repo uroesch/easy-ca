@@ -5,7 +5,7 @@
 # -----------------------------------------------------------------------------
 # print horizontal line 80 chars wide
 # -----------------------------------------------------------------------------
-function delimiter() {
+function ---- {
   printf "%0.1s" -{0..80}
   printf "\n"
 }
@@ -16,11 +16,11 @@ function delimiter() {
 function message() {
   local -a messages=( "${@}" )
   echo
-  delimiter
+  ----
   for message in "${messages[@]}"; do
     printf "${message}\n"
   done
-  delimiter
+  ----
 }
 
 # -----------------------------------------------------------------------------
@@ -266,7 +266,7 @@ function ask_ca_passphrase() {
   # only use for non root CA requests
   [[ ${CA_TYPE:-} == root ]] && return 0
   
-  function __password_prompt() {
+  function @password_prompt() {
     printf "\nEnter passphrase for ${ca_name} CA key: " 3>&1 1>&2 2>&3
     read -s ca_pass;
     echo 3>&1 1>&2 2>&3
@@ -274,8 +274,8 @@ function ask_ca_passphrase() {
   }
   
   case ${ca_name} in
-  signing) export CA_PASS=${CA_PASS:-$(__password_prompt)};;
-  root)    export CA_PARENT_PASS=${CA_PARENT_PASS:-$(__password_prompt)}::
+  signing) export CA_PASS=${CA_PASS:-$(@password_prompt)};;
+  root)    export CA_PARENT_PASS=${CA_PARENT_PASS:-$(@password_prompt)}::
   esac
 }
 
