@@ -25,6 +25,8 @@ declare    FINAL_MESSAGE=true
 # -----------------------------------------------------------------------------
 # Functions
 # -----------------------------------------------------------------------------
+function ---- { printf "%0.1s" -{1..80}; printf "\n"; }
+
 function usage() {
   local exit_code=${1:-1}
   FINAL_MESSAGE=false
@@ -170,15 +172,15 @@ function test::final_message() {
   [[ ${FINAL_MESSAGE} != true ]] && return 0
   if (( ${exit_code} > 0 )); then
     echo -e "\e[31m"
-    echo ${DELIMITER}
+    ----
     echo "There were errors in '$(module_name)' while executing the test suite"
-    echo ${DELIMITER}
+    ----
     echo -e "\e[0m"
   else
     echo -e "\e[32m"
-    echo ${DELIMITER}
+    ----
     echo All tests passed
-    echo ${DELIMITER}
+    ----
     echo -e "\e[0m"
   fi
   exit ${exit_code}
