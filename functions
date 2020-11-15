@@ -6,8 +6,8 @@
 # print horizontal line 80 chars wide
 # -----------------------------------------------------------------------------
 function ---- {
-  printf "%0.1s" -{0..80}
-  printf "\n"
+  [[ -z ${DELIMITER:-} ]] && DELIMITER=$(printf "%0.1s" -{0..80})
+  printf "%s\n" ${DELIMITER}
 }
 
 # -----------------------------------------------------------------------------
@@ -233,6 +233,8 @@ CA_CERT_L="${CA_CERT_L}"
 CA_CERT_O="${CA_CERT_O}"
 CA_CERT_OU="${CA_CERT_OU}"
 CA_CERT_CN="${CA_CERT_CN}"
+
+CA_KEY_CIPHER=${CA_KEY_CIPHER}
 EOF
 }
 
@@ -275,7 +277,7 @@ function ask_ca_passphrase() {
   
   case ${ca_name} in
   signing) export CA_PASS=${CA_PASS:-$(@password_prompt)};;
-  root)    export CA_PARENT_PASS=${CA_PARENT_PASS:-$(@password_prompt)}::
+  root)    export CA_PARENT_PASS=${CA_PARENT_PASS:-$(@password_prompt)};;
   esac
 }
 
@@ -293,7 +295,11 @@ function copy_ca_template() {
 function create_ca_key() {
   message "Create ${CA_TYPE} CA key 'ca/private/ca.key'"
   # Create the signing CA key
-  openssl genrsa -out ca/private/ca.key -passout env:CA_PASS 2048
+  openssl genrsa \
+    ${CA_KEY_CIPHER:+-${CA_KEY_CIPHER}} \
+    -out ca/private/ca.key \
+    -passout env:CA_PASS \
+    2048
   chmod 0400 ca/private/ca.key
 }
 

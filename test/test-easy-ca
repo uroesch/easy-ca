@@ -22,6 +22,10 @@ declare -r SIGNING_CA_DIR=${BASE_DIR}/signing
 declare -r DELIMITER=$(printf "%0.1s" -{1..80})
 declare    FINAL_MESSAGE=true
 
+# used for setting the password for they CA keys
+export CA_PASS=@T0pS3cr3t
+export CA_PARENT_PASS=@T0pS3cr3t
+
 # -----------------------------------------------------------------------------
 # Functions
 # -----------------------------------------------------------------------------
@@ -100,7 +104,8 @@ function test::fetch_serial() {
 }
 
 function test::create_root_ca() {
-  printf "%0.0s\n" {0..10} | \
+  echo ca-pass ${CA_PASS}
+  printf "%0.0s\n" {0..11} | \
     ${WORK_DIR}/create-root-ca -d ${ROOT_CA_DIR}
 }
 
