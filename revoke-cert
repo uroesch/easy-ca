@@ -12,9 +12,10 @@ set -o pipefail
 # Global
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
-declare -x SAN=${SAN:-}
 declare    CERT=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+declare -x SAN=${SAN:-}
+declare -x CA_PASS=${CA_PASS:-}
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -100,7 +101,8 @@ function revoke_certificate() {
   openssl ca \
     -config conf/ca.conf \
     -revoke ${CERT} \
-    -crl_reason ${REASON}
+    -crl_reason ${REASON} \
+    -passin env:CA_PASS
 }
 
 # -----------------------------------------------------------------------------

@@ -5,9 +5,9 @@
 # -----------------------------------------------------------------------------
 # print horizontal line 80 chars wide
 # -----------------------------------------------------------------------------
-function delimiter() {
-  printf "%0.1s" -{0..80}
-  printf "\n"
+function ---- {
+  [[ -z ${DELIMITER:-} ]] && DELIMITER=$(printf "%0.1s" -{0..80})
+  printf "%s\n" ${DELIMITER}
 }
 
 # -----------------------------------------------------------------------------
@@ -16,10 +16,11 @@ function delimiter() {
 function message() {
   local -a messages=( "${@}" )
   echo
-  delimiter
+  ----
   for message in "${messages[@]}"; do
     printf "${message}\n"
   done
+  ----
 }
 
 # -----------------------------------------------------------------------------
@@ -232,6 +233,8 @@ CA_CERT_L="${CA_CERT_L}"
 CA_CERT_O="${CA_CERT_O}"
 CA_CERT_OU="${CA_CERT_OU}"
 CA_CERT_CN="${CA_CERT_CN}"
+
+CA_KEY_CIPHER=${CA_KEY_CIPHER}
 EOF
 }
 
@@ -241,6 +244,7 @@ EOF
 function ask_passphrase() {
   local ca_name="${1}"; shift
   local prompt="Enter passphrase for encrypting the ${ca_name} CA key: "
+  [[ -n ${CA_PASS:-} ]] && { export CA_PASS; return 0; }
   echo
   echo -n "${prompt}"
   read -s pass1
@@ -262,16 +266,18 @@ function ask_passphrase() {
 function ask_ca_passphrase() {
   local ca_name=${1:-signing}
   # only use for non root CA requests
-  [[ ${CA_TYPE:-} == root ]] && return 0 
-
-  echo
-  echo -n "Enter passphrase for ${ca_name} CA key: "
-  read -s ca_pass
-  echo
-
+  [[ ${CA_TYPE:-} == root ]] && return 0
+  
+  function @password_prompt() {
+    printf "\nEnter passphrase for ${ca_name} CA key: " 3>&1 1>&2 2>&3
+    read -s ca_pass;
+    echo 3>&1 1>&2 2>&3
+    echo -n "${ca_pass}"
+  }
+  
   case ${ca_name} in
-  signing) export CA_PASS=${ca_pass};;
-  root)    export CA_PARENT_PASS=${ca_pass};;
+  signing) export CA_PASS=${CA_PASS:-$(@password_prompt)};;
+  root)    export CA_PARENT_PASS=${CA_PARENT_PASS:-$(@password_prompt)};;
   esac
 }
 
@@ -287,8 +293,13 @@ function copy_ca_template() {
 # Create private key for the CA
 # -----------------------------------------------------------------------------
 function create_ca_key() {
+  message "Create ${CA_TYPE} CA key 'ca/private/ca.key'"
   # Create the signing CA key
-  openssl genrsa -aes256 -out ca/private/ca.key -passout env:CA_PASS 2048
+  openssl genrsa \
+    ${CA_KEY_CIPHER:+-${CA_KEY_CIPHER}} \
+    -out ca/private/ca.key \
+    -passout env:CA_PASS \
+    2048
   chmod 0400 ca/private/ca.key
 }
 
@@ -345,10 +356,12 @@ function create_ca_csr() {
 # Create the revokation list for the CA
 # -----------------------------------------------------------------------------
 function create_ca_crl() {
+  message "Create ${CA_TYPE:-} CA CRL 'crl/ca.crl'"
   # Create the root CRL
   openssl ca \
     -gencrl \
     -batch \
     -config conf/ca.conf \
-    -out crl/ca.crl
+    -out crl/ca.crl \
+    -passin env:CA_PASS
 }

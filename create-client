@@ -18,7 +18,7 @@ declare    CERT_NAME=
 declare    SAFE_NAME=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare -x SAN=""
-declare -x CA_PASS=""
+declare -x CA_PASS="${CA_PASS:-}"
 
 # -----------------------------------------------------------------------------
 # Functions
