@@ -93,6 +93,7 @@ message "Creating new client certificate for '${CLIENT_NAME}' with:" \
 pushd ${BIN_DIR}/.. > /dev/null
 check_existing_configuration "${SAFE_NAME}" client
 create_client_conf
+ask_ca_passphrase 'signing'
 create_csr "client" "${SAFE_NAME}"
 sign_csr "client" "${SAFE_NAME}"
 popd > /dev/null
