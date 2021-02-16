@@ -1,13 +1,13 @@
 [ req ]
-default_bits            = 4096                  # RSA key size
-default_days            = 730                   # How long to certify for
-encrypt_key             = no                    # Protect private key
-default_md              = sha512                # MD to use
-utf8                    = yes                   # Input is UTF-8
-string_mask             = utf8only              # Emit UTF-8 strings
-prompt                  = yes                   # Prompt for DN
-distinguished_name      = client_dn             # DN template
-req_extensions          = client_reqext         # Desired extensions
+default_bits                    = 4096                  # RSA key size
+default_days                    = 730                   # How long to certify for
+encrypt_key                     = no                    # Protect private key
+default_md                      = sha512                # MD to use
+utf8                            = yes                   # Input is UTF-8
+string_mask                     = utf8only              # Emit UTF-8 strings
+prompt                          = yes                   # Prompt for DN
+distinguished_name              = client_dn             # DN template
+req_extensions                  = client_reqext         # Desired extensions
 
 [ client_dn ]
 countryName                     = "1. Country Name (2 letters) "
@@ -28,7 +28,7 @@ commonName_default              = {{CA_USERNAME}}
 #emailAddress_max                = 40
 
 [ client_reqext ]
-keyUsage                = critical,digitalSignature,keyEncipherment,keyAgreement
-extendedKeyUsage        = clientAuth
-subjectKeyIdentifier    = hash
-#subjectAltName          = email:move
+keyUsage                        = critical,digitalSignature,keyEncipherment,keyAgreement
+extendedKeyUsage                = clientAuth
+subjectKeyIdentifier            = hash
+#subjectAltName                  = email:move

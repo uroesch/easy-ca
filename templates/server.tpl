@@ -1,15 +1,15 @@
 [ default ]
 
 [ req ]
-default_bits            = 4096                  # RSA key size
-default_days            = 730                   # How long to certify for
-encrypt_key             = no                    # Protect private key
-default_md              = sha512                # MD to use
-utf8                    = yes                   # Input is UTF-8
-string_mask             = utf8only              # Emit UTF-8 strings
-prompt                  = yes                   # Prompt for DN
-distinguished_name      = server_dn             # DN template
-req_extensions          = server_reqext         # Desired extensions
+default_bits                   = 4096                  # RSA key size
+default_days                   = 730                   # How long to certify for
+encrypt_key                    = no                    # Protect private key
+default_md                     = sha512                # MD to use
+utf8                           = yes                   # Input is UTF-8
+string_mask                    = utf8only              # Emit UTF-8 strings
+prompt                         = yes                   # Prompt for DN
+distinguished_name             = server_dn             # DN template
+req_extensions                 = server_reqext         # Desired extensions
 
 [ server_dn ]
 countryName                    = "1. Country Name (2 letters) "
@@ -28,7 +28,7 @@ commonName_max                 = 64
 commonName_default             = {{CA_HOSTNAME}}
 
 [ server_reqext ]
-keyUsage                = critical,digitalSignature,keyEncipherment
-extendedKeyUsage        = serverAuth,clientAuth
-subjectKeyIdentifier    = hash
-subjectAltName          = $ENV::SAN
+keyUsage                       = critical,digitalSignature,keyEncipherment
+extendedKeyUsage               = serverAuth,clientAuth
+subjectKeyIdentifier           = hash
+subjectAltName                 = $ENV::SAN
