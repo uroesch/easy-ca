@@ -28,11 +28,11 @@ function usage() {
   cat <<USAGE
 
   Usage:
-    ${SCRIPT} -c CLIENT_NAME -n CERT_NAME
+    ${SCRIPT} -c CLIENT_NAME [-n CERT_NAME]
 
   Options:
     -c CLIENT_NAME  Client name (commonName) for the new cert
-    -n CERT_NAME  Cert name for the new cert
+    -n CERT_NAME    Cert name for the new cert
 
 USAGE
   exit ${exit_code}
@@ -55,7 +55,7 @@ function validate_options() {
   fi
 
   if [[ -z ${CERT_NAME} ]]; then
-    usage 1
+    CERT_NAME=${CLIENT_NAME}
   fi
 }
 
@@ -93,6 +93,7 @@ message "Creating new client certificate for '${CLIENT_NAME}' with:" \
 pushd ${BIN_DIR}/.. > /dev/null
 check_existing_configuration "${SAFE_NAME}" client
 create_client_conf
+ask_ca_passphrase 'signing'
 create_csr "client" "${SAFE_NAME}"
 sign_csr "client" "${SAFE_NAME}"
 popd > /dev/null
