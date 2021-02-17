@@ -153,14 +153,9 @@ $CA_DIR/private/user-domain-com.client.key
 $CA_DIR/csr/user-domain-com.client.csr
 ```
 
-The older create-client-o script will also create a client certificate but 
-without the need of specifing a certificate name:
-
 ```bash
-$CA_DIR/bin/create-client-o -c user@domain.com
+$CA_DIR/bin/create-client -c user@domain.com
 ```
-
-
 
 ### Revoke a Certificate
 

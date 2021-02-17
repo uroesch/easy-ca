@@ -33,7 +33,6 @@ function binaries() {
     create-signing-ca
     create-server
     create-client
-    create-client-o
     create-ssl
     revoke-cert
     functions

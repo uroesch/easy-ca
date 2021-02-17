@@ -136,15 +136,11 @@ function test::verify_ssl_certificate() {
 
 function test::create_client_certificate() {
   local client_name=${1}; shift;
-  local cert_name=${1}; shift;
+  local cert_name=${1:-};
   printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-client -c ${client_name} -n ${cert_name}
-}
-
-function test::create_client_o_certificate() {
-  local client_name=${1}; shift;
-  printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-client-o -c ${client_name}
+    ${SIGNING_CA_DIR}/bin/create-client \
+      -c ${client_name} \
+      ${cert_name:+-n ${cert_name}}
 }
 
 function test::revoke_certificate() {
@@ -201,17 +197,18 @@ test::create_signing_ca
 test::create_server_certificate '*.acme.com' 'acme.com'
 test::create_ssl_certificate 'ssl.acme.com' 'acme.com'
 test::verify_ssl_certificate 'ssl-acme-com.server.crt'
-test::create_client_certificate 'bob' 'bob_builder'
-test::create_client_o_certificate 'jane'
+test::create_client_certificate 'bob@acme.com' 'bob_builder'
+test::create_client_certificate 'bobby@acme.com'
 test::revoke_certificate 'star-acme-com.server.crt'
 test::verify_revokation 'star-acme-com.server.crt'
 test::revoke_certificate 'ssl-acme-com.server.crt'
 test::verify_revokation 'ssl-acme-com.server.crt'
 test::revoke_certificate 'bob-builder.client.crt'
 test::verify_revokation 'bob-builder.client.crt'
+test::revoke_certificate 'bobby-acme-com.client.crt'
+test::verify_revokation 'bobby-acme-com.client.crt'
 test::usage \
   create-client \
-  create-client-o \
   create-root-ca \
   create-server \
   create-signing-ca \
