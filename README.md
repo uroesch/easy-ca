@@ -28,7 +28,7 @@ tested at each pull request.
 | -------------------------------- | -----------------: |
 | Ubuntu Xenial Xerus (16.04 LTS)  | :heavy_check_mark: |
 | Ubuntu Bionic Beaver (18.04 LTS) | :heavy_check_mark: |
-| Ubuntu Focal Fossa (18.04 LTS)   | :heavy_check_mark: |
+| Ubuntu Focal Fossa (20.04 LTS)   | :heavy_check_mark: |
 | macOS Catalina 10.15             | :heavy_check_mark: |
 | macOS Big Sur 11.0               | :heavy_check_mark: |
 
