@@ -12,7 +12,7 @@ set -o pipefail
 # Global
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
-declare    CERT=
+declare    CERT_NAME=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare -x SAN=${SAN:-}
 declare -x CA_PASS=${CA_PASS:-}
@@ -25,29 +25,32 @@ function usage() {
   cat <<USAGE
 
   Usage:
-    ${SCRIPT} -c CERT
+    ${SCRIPT} -c CERT_NAME [-h]
 
-  Revokes a certificate issued by this CA
+  Description:
+    Revokes a certificate issued by this CA.
 
   Options:
-    -c CERT  Path the the certificate file to be revoked
+    -h | --help                  This message. 
+    -c | --cert-name CERT_NAME   Path the the certificate file to be revoked.
 
 USAGE
   exit ${exit_code}
 }
 
 function parse_options() {
-  while getopts hc: flag; do
-    case ${flag} in
-    c) CERT=${OPTARG} ;;
-    h) usage 0 ;;
-    *) usage 1 ;;
+  while (( $# > 0 )); do
+    case ${1} in
+    -c|--cert-name) shift; CERT_NAME=${1};;
+    -h|--help)      usage 0;;
+    *)              usage 1;;
     esac
+    shift
   done
 }
 
 function validate_options() {
-  if [[ -z ${CERT} ]]; then
+  if [[ -z ${CERT_NAME} ]]; then
     usage 1
   fi
 }
@@ -100,7 +103,7 @@ function ask_revoke_reason() {
 function revoke_certificate() {
   openssl ca \
     -config conf/ca.conf \
-    -revoke ${CERT} \
+    -revoke ${CERT_NAME} \
     -crl_reason ${REASON} \
     -passin env:CA_PASS
 }
@@ -111,11 +114,11 @@ function revoke_certificate() {
 parse_options "${@}"
 validate_options
 source_files
-check_certificate "$(fullpath ${CERT})"
-message "Revoking certificate '${CERT}'"
+check_certificate "$(fullpath ${CERT_NAME})"
+message "Revoking certificate '${CERT_NAME}'"
 pushd ${BIN_DIR}/.. > /dev/null
 ask_revoke_reason
 revoke_certificate
 create_ca_crl
 popd > /dev/null
-message "Certificate '${CERT}' revoked."
+message "Certificate '${CERT_NAME}' revoked."
