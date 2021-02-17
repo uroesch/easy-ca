@@ -45,6 +45,7 @@ tested at each pull request.
 |        4.3.x | :heavy_check_mark: |
 |        4.4.x | :heavy_check_mark: |
 |        5.0.x | :heavy_check_mark: |
+|        5.1.x | :heavy_check_mark: |
 
 Earlier versions of Bash have not been tested but will most likely not work.
 
