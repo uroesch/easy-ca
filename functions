@@ -266,14 +266,14 @@ function ask_ca_passphrase() {
   local ca_name=${1:-signing}
   # only use for non root CA requests
   [[ ${CA_TYPE:-} == root ]] && return 0
-  
+
   function @password_prompt() {
     printf "\nEnter passphrase for ${ca_name} CA key: " 3>&1 1>&2 2>&3
     read -s ca_pass;
     echo 3>&1 1>&2 2>&3
     echo -n "${ca_pass}"
   }
-  
+
   case ${ca_name} in
   signing) export CA_PASS=${CA_PASS:-$(@password_prompt)};;
   root)    export CA_PARENT_PASS=${CA_PARENT_PASS:-$(@password_prompt)};;
