@@ -42,7 +42,6 @@ USAGE
 }
 
 function parse_options() {
-  set -x
   while (( $# > 0 )); do
     case ${1} in
     -s|--server-name) shift; SERVER_NAME=${1};;
@@ -52,7 +51,6 @@ function parse_options() {
     esac
     shift
   done
-  set +x
 }
 
 function validate_options() {
