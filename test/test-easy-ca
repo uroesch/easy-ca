@@ -7,7 +7,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-trap test::final_message EXIT
+trap test::final-message EXIT
 
 # -----------------------------------------------------------------------------
 # Globals
@@ -77,7 +77,7 @@ function test::setup() {
   [[ ! -d ${BASE_DIR} ]] && mkdir -p ${BASE_DIR}
 }
 
-function test::dump_certificate() {
+function test::dump-certificate() {
   local certificate=${1}; shift;
   openssl x509 \
     -noout \
@@ -85,7 +85,7 @@ function test::dump_certificate() {
     -in ${SIGNING_CA_DIR}/certs/${certificate}
 }
 
-function test::fetch_serial() {
+function test::fetch-serial() {
   local certificate=${1}; shift;
   openssl x509 \
     -noout \
@@ -94,71 +94,57 @@ function test::fetch_serial() {
     awk -F = '{print $2}'
 }
 
-function test::create_root_ca() {
+function test::create-root-ca() {
   echo ca-pass ${CA_PASS}
   printf "%0.0s\n" {0..11} | \
     ${WORK_DIR}/create-root-ca -d ${ROOT_CA_DIR}
 }
 
-function test::create_signing_ca() {
+function test::create-signing-ca() {
   printf "%0.0s\n" {0..11} | \
     ${ROOT_CA_DIR}/bin/create-signing-ca -d ${SIGNING_CA_DIR}
 }
 
-function test::create_server_certificate() {
-  set -x
-  local server_name="${1}"; shift;
-  local -a alternatives=( "$@" )
-  set +x
+function test::create-server() {
   printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-server \
-      -s "${server_name}" \
-      ${alternatives[@]/#/-a }
+    ${SIGNING_CA_DIR}/bin/create-server "$@"
 }
 
-function test::verify_server_certificate() {
+function test::verify-server() {
   local certificate=${1}; shift;
   local -a alternatives=( "$@" )
   for alt_name in "${alternatives[@]}"; do
-    test::dump_certificate "${certificate}" | \
+    test::dump-certificate "${certificate}" | \
       grep -q "DNS:${alt_name}"
   done
 }
 
-function test::create_ssl_certificate() {
-  local server_name="${1}"; shift;
-  local -a alternatives=( "$@" )
+function test::create-ssl() {
   printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-ssl \
-      -s ${server_name} \
-      ${alternatives[@]/#/-a }
+    ${SIGNING_CA_DIR}/bin/create-ssl "$@"
 }
 
-function test::verify_ssl_certificate() {
+function test::verify-ssl() {
   local certificate=${1}; shift;
-  test::dump_certificate "${certificate}" | \
+  test::dump-certificate "${certificate}" | \
     grep -q "Netscape Cert Type"
 }
 
-function test::create_client_certificate() {
-  local client_name=${1}; shift;
-  local cert_name=${1:-};
+function test::create-client() {
   printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-client \
-      -c ${client_name} \
-      ${cert_name:+-n ${cert_name}}
+    ${SIGNING_CA_DIR}/bin/create-client "$@"
 }
 
-function test::revoke_certificate() {
+function test::revoke-cert() {
   local certificate=${1}; shift;
   printf "1\ny\n" | \
     ${SIGNING_CA_DIR}/bin/revoke-cert \
     -c ${SIGNING_CA_DIR}/certs/${certificate}
 }
 
-function test::verify_revokation() {
+function test::verify-revokation() {
   local certificate=${1}; shift;
-  local serial=$(test::fetch_serial ${certificate})
+  local serial=$(test::fetch-serial ${certificate})
 
   openssl crl \
     -noout \
@@ -174,7 +160,7 @@ function test::usage() {
   done
 }
 
-function test::final_message() {
+function test::final-message() {
   local exit_code=$?
   [[ ${FINAL_MESSAGE} != true ]] && return 0
   if (( ${exit_code} > 0 )); then
@@ -198,22 +184,22 @@ function test::final_message() {
 # -----------------------------------------------------------------------------
 parse_options "$@"
 test::setup
-test::create_root_ca
-test::create_signing_ca
-test::create_server_certificate '*.acme.com' 'acme.com'
-test::verify_server_certificate 'star-acme-com.server.crt' {\*.,}acme.com
-test::create_ssl_certificate 'ssl.acme.com' 'acme.com'
-test::verify_ssl_certificate 'ssl-acme-com.server.crt'
-test::create_client_certificate 'bob@acme.com' 'bob_builder'
-test::create_client_certificate 'bobby@acme.com'
-test::revoke_certificate 'star-acme-com.server.crt'
-test::verify_revokation 'star-acme-com.server.crt'
-test::revoke_certificate 'ssl-acme-com.server.crt'
-test::verify_revokation 'ssl-acme-com.server.crt'
-test::revoke_certificate 'bob-builder.client.crt'
-test::verify_revokation 'bob-builder.client.crt'
-test::revoke_certificate 'bobby-acme-com.client.crt'
-test::verify_revokation 'bobby-acme-com.client.crt'
+test::create-root-ca
+test::create-signing-ca
+test::create-server -s '*.acme.com' -a 'acme.com'
+test::verify-server 'star-acme-com.server.crt' {\*.,}acme.com
+test::create-ssl -s 'ssl.acme.com' -a 'acme.com'
+test::verify-ssl 'ssl-acme-com.server.crt'
+test::create-client -c 'bob@acme.com' -n 'bob_builder'
+test::create-client -c 'bobby@acme.com'
+test::revoke-cert 'star-acme-com.server.crt'
+test::verify-revokation 'star-acme-com.server.crt'
+test::revoke-cert 'ssl-acme-com.server.crt'
+test::verify-revokation 'ssl-acme-com.server.crt'
+test::revoke-cert 'bob-builder.client.crt'
+test::verify-revokation 'bob-builder.client.crt'
+test::revoke-cert 'bobby-acme-com.client.crt'
+test::verify-revokation 'bobby-acme-com.client.crt'
 test::usage \
   create-client \
   create-root-ca \
