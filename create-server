@@ -15,8 +15,8 @@ set -o pipefail
 declare -r SCRIPT=${0##*/}
 declare    CERT_TYPE=sever
 declare    CERT_DESCRIPTION="server"
-declare    SERVER_NAME=
-declare    ALT_NAME=
+declare    CN=
+declare    SAN=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # -----------------------------------------------------------------------------
@@ -27,15 +27,15 @@ function usage() {
   cat <<USAGE
 
   Usage:
-    ${SCRIPT} -s SERVER_NAME [[-a ALT_NAME] ...] [-h]
+    ${SCRIPT} -s SERVER_NAME [[-S SAN] ...] [-h]
 
   Description:
     Issues a server ${CERT_DESCRIPTION} certificate for SERVER_NAME.
 
   Options:
-    -h | --help                    This message.
-    -s | --server-name SERVER_NAME Server hostname (commonName) for the cert.
-    -a | --alt-name ALT_NAME       One (or more) subjectAltNames for the cert.
+    -h | --help            This message.
+    -c | --cn COMMON_NAME  Server hostname (commonName) for the cert.
+    -s | --san SAN         One (or more) SAN (subjectAltNames) for the cert.
 
 USAGE
   exit ${exit_code}
@@ -44,26 +44,26 @@ USAGE
 function parse_options() {
   while (( $# > 0 )); do
     case ${1} in
-    -s|--server-name) shift; SERVER_NAME=${1};;
-    -a|--alt-name)    shift; ALT_NAME="${ALT_NAME}, DNS:${1}";;
-    -h|--help)        usage 0;;
-    *)                usage 1;;
+    -c|--cn)   shift; CN=${1};;
+    -s|--san)  shift; SAN="${SAN}, DNS:${1}";;
+    -h|--help) usage 0;;
+    *)         usage 1;;
     esac
     shift
   done
 }
 
 function validate_options() {
-  if [[ -z ${SERVER_NAME} ]]; then
+  if [[ -z ${CN} ]]; then
     usage 1
   fi
 }
 
-function assemble_alt_names() {
+function assemble_san() {
   # Normally an array would be used here but for
   # backward compatibilty with bash v3.0 we do it
   # the old fashioned way
-  ALT_NAME="DNS:${SERVER_NAME}${ALT_NAME}"
+  SAN="DNS:${CN}${SAN}"
 }
 
 function determine_operation_mode() {
@@ -90,17 +90,17 @@ function source_files() {
 # -----------------------------------------------------------------------------
 parse_options "${@}"
 validate_options
-assemble_alt_names
+assemble_san
 determine_operation_mode
 source_files
 
 # Sanitize the commonName to make it suitable for use in filenames
-SAFE_NAME=$(to_safe_name "${SERVER_NAME}")
+SAFE_NAME=$(to_safe_name "${CN}")
 
 message \
   "Creating new SSL server certificate for:" \
-  "commonName: '${SERVER_NAME}'" \
-  "subjectAltName: '${ALT_NAME}'"
+  "commonName: '${CN}'" \
+  "subjectAltName: '${SAN}'"
 
 pushd ${BIN_DIR}/.. > /dev/null
 
@@ -108,8 +108,8 @@ check_existing_configuration "${SAFE_NAME}" server
 ask_ca_passphrase 'signing'
 
 # Generate the server openssl config
-export CA_HOSTNAME=${SERVER_NAME}
-export SAN=${ALT_NAME}
+export CA_HOSTNAME=${CN}
+export SAN=${SAN}
 template "${BIN_DIR}/templates/${CERT_TYPE}.tpl" "conf/${SAFE_NAME}.server.conf"
 
 # Create the server key and csr and sign it

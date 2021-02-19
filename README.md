@@ -1,15 +1,15 @@
 [![Build](https://github.com/uroesch/easy-ca/workflows/verify-ca/badge.svg)](https://github.com/uroesch/easy-ca/actions?query=workflow%3Averify-ca)
 [![Runs on](https://img.shields.io/badge/runs%20on-Linux%20%26%20macOS-blue)](#runtime-dependencies)
-<!-- 
-[![GitHub release (latest by date including 
+<!--
+[![GitHub release (latest by date including
 pre-releases)](https://img.shields.io/github/v/release/uroesch/easy-ca?include_prereleases)](https://github.com/uroesch/easy-ca/releases)
-![GitHub All Releases](https://img.shields.io/github/downloads/uroesch/easy-ca/total?style=flat) 
+![GitHub All Releases](https://img.shields.io/github/downloads/uroesch/easy-ca/total?style=flat)
 -->
 
 # easy-ca
 OpenSSL wrapper scripts for managing basic CA functions
 
-A suite of bash scripts for automating very basic OpenSSL Certificate Authority 
+A suite of bash scripts for automating very basic OpenSSL Certificate Authority
 operations:
 * Creating Root CAs
 * Creating Intermediate Signing CAs
@@ -19,7 +19,7 @@ operations:
 
 ## Compatibilty
 
-The listed operating systems and bash version are automatically verified and 
+The listed operating systems and bash version are automatically verified and
 tested at each pull request.
 
 ## Operating Systems
@@ -53,19 +53,19 @@ Earlier versions of Bash have not been tested but will most likely not work.
 
 ### Create a new Root CA
 
-The **create-root-ca** script will initialize a new Root CA directory 
-structure. This script can be run directly from the source repo or from within 
-an existing Easy CA installation. The CA is self-contained within the specified 
-directory tree. It is portable and can be stored on removable media for 
+The **create-root-ca** script will initialize a new Root CA directory
+structure. This script can be run directly from the source repo or from within
+an existing Easy CA installation. The CA is self-contained within the specified
+directory tree. It is portable and can be stored on removable media for
 security.
 
 ```bash
-create-root-ca -d $ROOT_CA_DIR
+create-root-ca --ca-dir $ROOT_CA_DIR
 ```
 
-**create-root-ca** will prompt for the basic DN configuration to use as 
-defaults for this CA. Optionally, you can edit *defaults.conf* to set this 
-information in advance. The new CA is now ready for use. The CA key, 
+**create-root-ca** will prompt for the basic DN configuration to use as
+defaults for this CA. Optionally, you can edit *defaults.conf* to set this
+information in advance. The new CA is now ready for use. The CA key,
 certificate, and CRL are available for review:
 
 ```bash
@@ -77,16 +77,16 @@ $ROOT_CA_DIR/crl/ca.crl
 
 ### (Optional) Create an Intermediate Signing CA
 
-Running **create-signing-ca** from within a Root CA installation will 
-initialize a new Intermediate CA directory structure, indepedent and separate 
+Running **create-signing-ca** from within a Root CA installation will
+initialize a new Intermediate CA directory structure, indepedent and separate
 from the Root CA. A Root CA may issue multiple Intermediate CAs.
 
 ```bash
-$ROOT_CA_DIR/bin/create-signing-ca -d $SIGNING_CA_DIR
+$ROOT_CA_DIR/bin/create-signing-ca --ca-dir $SIGNING_CA_DIR
 ```
 
-**create-signing-ca** will prompt for basic DN configuration, using the Root CA 
-configuration as defaults. The Intermediate Signing CA is now ready for use. 
+**create-signing-ca** will prompt for basic DN configuration, using the Root CA
+configuration as defaults. The Intermediate Signing CA is now ready for use.
 The CA key, certificate, chain file, and CRL are available for review:
 
 ```bash
@@ -98,35 +98,35 @@ $SIGNING_CA_DIR/crl/ca.crl
 
 ## Using the Created Certificate Authority
 
-After the Certificate Authority has been created, the scripts should be run on 
+After the Certificate Authority has been created, the scripts should be run on
 the created CA directory (At the first run the directory must no exist).
 For example:
 
 ```bash
-create-root-ca -d /opt/CA
+create-root-ca --ca-dir /opt/CA
 cd /opt/CA/bin
-create-client -c user1@bogus.com -n user1
+create-client --cn user1@bogus.com --name user1
 ```
 
 ### Issue a Server Certificate
 
-Running **create-server** from within any CA installation will issue a new 
+Running **create-server** from within any CA installation will issue a new
 server (serverAuth) certificate:
 
 ```bash
-$CA_DIR/bin/create-server -s fqdn.domain.com
+$CA_DIR/bin/create-server --cn fqdn.domain.com
 ```
 
-Optionally, you can specify one (or more) subjectAltNames to accompany the new 
+Optionally, you can specify one (or more) subjectAltNames to accompany the new
 certificate:
 
 ```bash
-$CA_DIR/bin/create-server -s fqdn.domain.com -a alt1.domain.com -a 
-alt2.domain.com
+$CA_DIR/bin/create-server --cn fqdn.domain.com \
+  --san alt1.domain.com --san alt2.domain.com
 ```
 
-**create-server** will prompt for basic DN configuration, using the CA 
-configuration as defaults. After the script is completed, the server 
+**create-server** will prompt for basic DN configuration, using the CA
+configuration as defaults. After the script is completed, the server
 certificate, key, and CSR are available for review:
 
 ```bash
@@ -137,15 +137,15 @@ $CA_DIR/csr/fqdn-domain-com.server.csr
 
 ### Issue a Client Certificate
 
-Running **create-client** from within any CA installation will issue a new 
+Running **create-client** from within any CA installation will issue a new
 client (clientAuth) certificate:
 
 ```bash
-$CA_DIR/bin/create-client -c user@domain.com -n certname
+$CA_DIR/bin/create-client --cn user@domain.com --name certname
 ```
 
-**create-client** will prompt for basic DN configuration, using the CA 
-configuration as defaults. After the script is completed, the client 
+**create-client** will prompt for basic DN configuration, using the CA
+configuration as defaults. After the script is completed, the client
 certificate, key, and CSR are available for review:
 
 ```bash
@@ -155,26 +155,26 @@ $CA_DIR/csr/user-domain-com.client.csr
 ```
 
 ```bash
-$CA_DIR/bin/create-client -c user@domain.com
+$CA_DIR/bin/create-client --cn user@domain.com
 ```
 
 ### Revoke a Certificate
 
-Running **revoke-cert** from within a CA installation allows you to revoke a 
+Running **revoke-cert** from within a CA installation allows you to revoke a
 certificate issued by that CA and update the CRL:
 
 For Server certificates:
 ```bash
-$CA_DIR/bin/revoke-cert -c $CA_DIR/certs/fqdn-domain-com.server.crt
+$CA_DIR/bin/revoke-cert --cert-name $CA_DIR/certs/fqdn-domain-com.server.crt
 ```
 
 For Client certificates:
 ```bash
-$CA_DIR/bin/revoke-cert -c $CA_DIR/certs/certificate.client.crt
+$CA_DIR/bin/revoke-cert --cert-name $CA_DIR/certs/certificate.client.crt
 ```
 
 
-**revoke-cert** will prompt for the revocation reason. After the script is 
+**revoke-cert** will prompt for the revocation reason. After the script is
 completed, the server CRL is updated and available for review:
 
 ```bash
@@ -185,7 +185,7 @@ $CA_DIR/crl/ca.crl
 
 ## Caveats
 
-These scripts are very simple, and make some hard-coded assumptions about 
+These scripts are very simple, and make some hard-coded assumptions about
 behavior and configuration:
 * Root and Intermediate CAs have a 3652-day lifetime
 * Root and Intermediate CAs have 4096-bit RSA keys

@@ -25,14 +25,14 @@ function usage() {
   cat <<USAGE
 
   Usage:
-    ${SCRIPT} -c CERT_NAME [-h]
+    ${SCRIPT} -C CERT_NAME [-h]
 
   Description:
     Revokes a certificate issued by this CA.
 
   Options:
-    -h | --help                  This message. 
-    -c | --cert-name CERT_NAME   Path the the certificate file to be revoked.
+    -h | --help                  This message.
+    -C | --cert-name CERT_NAME   Path the the certificate file to be revoked.
 
 USAGE
   exit ${exit_code}
@@ -41,7 +41,7 @@ USAGE
 function parse_options() {
   while (( $# > 0 )); do
     case ${1} in
-    -c|--cert-name) shift; CERT_NAME=${1};;
+    -C|--cert-name) shift; CERT_NAME=${1};;
     -h|--help)      usage 0;;
     *)              usage 1;;
     esac

@@ -13,7 +13,7 @@ set -o pipefail
 # Globals
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
-declare    CLIENT_NAME=
+declare    CN=
 declare    CERT_NAME=
 declare    SAFE_NAME=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -28,16 +28,16 @@ function usage() {
   cat <<USAGE
 
   Usage:
-    ${SCRIPT} -c CLIENT_NAME [-n CERT_NAME] [-h]
+    ${SCRIPT} -c COMMON_NAME [-n CERT_NAME] [-h]
 
   Description:
     Issues a client or user certificate for CLIENT_NAME.
 
   Options:
     -h | --help                     This message
-    -n | --cert-name CERT_NAME      Certificate file name for the cert.
-                                    Default: CLIENT_NAME
-    -c | --client-name CLIENT_NAME  Client name (commonName) for the cert.
+    -n | --name CERT_NAME  file name for the certifcate.
+                           Default: COMMON_NAME
+    -c | --cn COMMON_NAME  Client name (commonName) for the cert.
 
 USAGE
   exit ${exit_code}
@@ -46,22 +46,22 @@ USAGE
 function parse_options() {
   while (( $# > 0 )); do
     case ${1} in
-    -c|--client-name) shift; CLIENT_NAME=${1};;
-    -n|--cert-name)   shift; CERT_NAME=${1};;
-    -h|--help)        usage 0;;
-    *)                usage 1;;
+    -c|--cn)   shift; CN=${1};;
+    -n|--name) shift; CERT_NAME=${1};;
+    -h|--help) usage 0;;
+    *)         usage 1;;
     esac
     shift
   done
 }
 
 function validate_options() {
-  if [[ -z ${CLIENT_NAME} ]]; then
+  if [[ -z ${CN} ]]; then
     usage 1
   fi
 
   if [[ -z ${CERT_NAME} ]]; then
-    CERT_NAME=${CLIENT_NAME}
+    CERT_NAME=${CN}
   fi
 }
 
@@ -77,7 +77,7 @@ function create_safe_name() {
 
 function create_client_conf() {
   # Generate the client cert openssl config
-  export CA_USERNAME=${CLIENT_NAME}
+  export CA_USERNAME=${CN}
   template "${BIN_DIR}/templates/client.tpl" "conf/${SAFE_NAME}.client.conf"
   if [[ -z ${SAN} ]]; then
     sed -i -e 's/^\(subjectAltName.*=.*\)/#\1/' \
@@ -93,9 +93,9 @@ parse_options "${@}"
 validate_options
 source_files
 create_safe_name
-message "Creating new client certificate for '${CLIENT_NAME}' with:" \
+message "Creating new client certificate for '${CN}' with:" \
   "CERT_NAME: '${CERT_NAME}'" \
-  "CLIENT_NAME: '${CLIENT_NAME}'"
+  "CLIENT_NAME: '${CN}'"
 pushd ${BIN_DIR}/.. > /dev/null
 check_existing_configuration "${SAFE_NAME}" client
 create_client_conf
