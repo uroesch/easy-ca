@@ -16,7 +16,8 @@ declare -r SCRIPT=${0##*/}
 declare    CERT_TYPE=sever
 declare    CERT_DESCRIPTION="server"
 declare    CN=
-declare    SAN=
+declare -x SAN="${SAN:-}"
+declare -r SAN_PREFIX="DNS"
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # -----------------------------------------------------------------------------
@@ -45,7 +46,7 @@ function parse_options() {
   while (( $# > 0 )); do
     case ${1} in
     -c|--cn)   shift; CN=${1};;
-    -s|--san)  shift; SAN="${SAN}, DNS:${1}";;
+    -s|--san)  shift; SAN="${SAN}, ${SAN_PREFIX}:${1}";;
     -h|--help) usage 0;;
     *)         usage 1;;
     esac
@@ -57,13 +58,6 @@ function validate_options() {
   if [[ -z ${CN} ]]; then
     usage 1
   fi
-}
-
-function assemble_san() {
-  # Normally an array would be used here but for
-  # backward compatibilty with bash v3.0 we do it
-  # the old fashioned way
-  SAN="DNS:${CN}${SAN}"
 }
 
 function determine_operation_mode() {
@@ -90,9 +84,9 @@ function source_files() {
 # -----------------------------------------------------------------------------
 parse_options "${@}"
 validate_options
-assemble_san
 determine_operation_mode
 source_files
+assemble_san
 
 # Sanitize the commonName to make it suitable for use in filenames
 SAFE_NAME=$(to_safe_name "${CN}")
@@ -109,7 +103,6 @@ ask_ca_passphrase 'signing'
 
 # Generate the server openssl config
 export CA_HOSTNAME=${CN}
-export SAN=${SAN}
 template "${BIN_DIR}/templates/${CERT_TYPE}.tpl" "conf/${SAFE_NAME}.server.conf"
 
 # Create the server key and csr and sign it
