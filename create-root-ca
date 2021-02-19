@@ -26,24 +26,27 @@ function usage() {
   cat <<USAGE
 
   Usage:
-    ${SCRIPT} -d CA_DIR
+    ${SCRIPT} -d CA_DIR [-h]
 
-  Initializes a new ${CA_DESCRIPTION} in CA_DIR
+  Description:
+    Initializes a new ${CA_DESCRIPTION} in CA_DIR.
 
   Options:
-    -d CA_DIR  Target directory to be created and initialized
+    -h | --help            This message.
+    -d | --ca-dir CA_DIR   Target directory to be created and initialized.
 
 USAGE
   exit ${exit_code}
 }
 
 function parse_options() {
-  while getopts hd: flag; do
-    case ${flag} in
-    d) CA_DIR=${OPTARG} ;;
-    h) usage 0 ;;
-    *) usage 1 ;;
+  while (( $# > 0 )); do
+    case ${1} in
+    -d|--ca-dir) shift; CA_DIR=${1};;
+    -h|--help)   usage 0;;
+    *)           usage 1;;
     esac
+    shift
   done
 }
 

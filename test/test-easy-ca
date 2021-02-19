@@ -77,15 +77,6 @@ function test::setup() {
   [[ ! -d ${BASE_DIR} ]] && mkdir -p ${BASE_DIR}
 }
 
-function test::alternatives() {
-  local options=( "${@}" )
-  local alternatives=
-  for option in "${options[@]}"; do
-    alternatives+="-a ${option}"
-  done
-  echo ${alternatives}
-}
-
 function test::dump_certificate() {
   local certificate=${1}; shift;
   openssl x509 \
@@ -115,17 +106,32 @@ function test::create_signing_ca() {
 }
 
 function test::create_server_certificate() {
+  set -x
   local server_name="${1}"; shift;
-  local alternatives=$(test::alternatives "${@}")
+  local -a alternatives=( "$@" )
+  set +x
   printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-server -s "${server_name}" ${alternatives}
+    ${SIGNING_CA_DIR}/bin/create-server \
+      -s "${server_name}" \
+      ${alternatives[@]/#/-a }
+}
+
+function test::verify_server_certificate() {
+  local certificate=${1}; shift;
+  local -a alternatives=( "$@" )
+  for alt_name in "${alternatives[@]}"; do
+    test::dump_certificate "${certificate}" | \
+      grep -q "DNS:${alt_name}"
+  done
 }
 
 function test::create_ssl_certificate() {
   local server_name="${1}"; shift;
-  local alternatives=$(test::alternatives "${@}")
+  local -a alternatives=( "$@" )
   printf "%0.0s\n" {0..6} | \
-    ${SIGNING_CA_DIR}/bin/create-ssl -s ${server_name} ${alternatives}
+    ${SIGNING_CA_DIR}/bin/create-ssl \
+      -s ${server_name} \
+      ${alternatives[@]/#/-a }
 }
 
 function test::verify_ssl_certificate() {
@@ -195,6 +201,7 @@ test::setup
 test::create_root_ca
 test::create_signing_ca
 test::create_server_certificate '*.acme.com' 'acme.com'
+test::verify_server_certificate 'star-acme-com.server.crt' {\*.,}acme.com
 test::create_ssl_certificate 'ssl.acme.com' 'acme.com'
 test::verify_ssl_certificate 'ssl-acme-com.server.crt'
 test::create_client_certificate 'bob@acme.com' 'bob_builder'

@@ -27,44 +27,45 @@ function usage() {
   cat <<USAGE
 
   Usage:
-    ${SCRIPT} -s SERVER_NAME [-a ALT_NAME]...
+    ${SCRIPT} -s SERVER_NAME [[-a ALT_NAME] ...] [-h]
 
-  Issues a server ${CERT_DESCRIPTION} certificate for SERVER_NAME
+  Description:
+    Issues a server ${CERT_DESCRIPTION} certificate for SERVER_NAME.
 
   Options:
-    -s SERVER_NAME  Server hostname (commonName) for the new cert
-    -a ALT_NAME     One (or more) subjectAltNames for the new cert (optional)
+    -h | --help                    This message.
+    -s | --server-name SERVER_NAME Server hostname (commonName) for the cert.
+    -a | --alt-name ALT_NAME       One (or more) subjectAltNames for the cert.
+
 USAGE
   exit ${exit_code}
 }
 
 function parse_options() {
-  while getopts hs:a: flag; do
-    case ${flag} in
-    s) SERVER_NAME=${OPTARG}
-      if [ -z "${ALT_NAME}" ]; then
-        ALT_NAME="DNS:${OPTARG}"
-      else
-        ALT_NAME="${ALT_NAME}, DNS:${OPTARG}"
-      fi
-      ;;
-    a)
-      if [ -z "${ALT_NAME}" ]; then
-        ALT_NAME="DNS:${OPTARG}"
-      else
-        ALT_NAME="${ALT_NAME}, DNS:${OPTARG}"
-      fi
-      ;;
-    h) usage 0;;
-    *) usage 1;;
+  set -x
+  while (( $# > 0 )); do
+    case ${1} in
+    -s|--server-name) shift; SERVER_NAME=${1};;
+    -a|--alt-name)    shift; ALT_NAME="${ALT_NAME}, DNS:${1}";;
+    -h|--help)        usage 0;;
+    *)                usage 1;;
     esac
+    shift
   done
+  set +x
 }
 
 function validate_options() {
   if [[ -z ${SERVER_NAME} ]]; then
     usage 1
   fi
+}
+
+function assemble_alt_names() {
+  # Normally an array would be used here but for
+  # backward compatibilty with bash v3.0 we do it
+  # the old fashioned way
+  ALT_NAME="DNS:${SERVER_NAME}${ALT_NAME}"
 }
 
 function determine_operation_mode() {
@@ -91,6 +92,7 @@ function source_files() {
 # -----------------------------------------------------------------------------
 parse_options "${@}"
 validate_options
+assemble_alt_names
 determine_operation_mode
 source_files
 

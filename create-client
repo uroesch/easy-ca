@@ -28,24 +28,30 @@ function usage() {
   cat <<USAGE
 
   Usage:
-    ${SCRIPT} -c CLIENT_NAME [-n CERT_NAME]
+    ${SCRIPT} -c CLIENT_NAME [-n CERT_NAME] [-h]
+
+  Description:
+    Issues a client or user certificate for CLIENT_NAME.
 
   Options:
-    -c CLIENT_NAME  Client name (commonName) for the new cert
-    -n CERT_NAME    Cert name for the new cert
+    -h | --help                     This message
+    -n | --cert-name CERT_NAME      Certificate file name for the cert.
+                                    Default: CLIENT_NAME
+    -c | --client-name CLIENT_NAME  Client name (commonName) for the cert.
 
 USAGE
   exit ${exit_code}
 }
 
 function parse_options() {
-  while getopts hc:n: flag; do
-    case ${flag} in
-    c) CLIENT_NAME=${OPTARG};;
-    n) CERT_NAME=${OPTARG};;
-    h) usage 0;;
-    *) usage 1;;
+  while (( $# > 0 )); do
+    case ${1} in
+    -c|--client-name) shift; CLIENT_NAME=${1};;
+    -n|--cert-name)   shift; CERT_NAME=${1};;
+    -h|--help)        usage 0;;
+    *)                usage 1;;
     esac
+    shift
   done
 }
 
