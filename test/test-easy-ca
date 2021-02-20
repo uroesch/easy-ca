@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 
 # -----------------------------------------------------------------------------
 # Setup
@@ -77,12 +77,32 @@ function test::setup() {
   [[ ! -d ${BASE_DIR} ]] && mkdir -p ${BASE_DIR}
 }
 
+function test::certificate-file() {
+  local certificate=${1}; shift;
+  test -f $(test::certificate-path ${certificate})
+}
+
+function test::san() {
+  local certificate="${1}"; shift;
+  local prefix="${1}"; shift;
+  local -a san=( "$@" )
+  for entry in "${san[@]}"; do
+    test::dump-certificate "${certificate}" | \
+      grep -q "${prefix}:${entry}"
+  done
+}
+
+function test::certificate-path() {
+  local certificate="${1}"; shift;
+  echo ${SIGNING_CA_DIR}/certs/${certificate}
+}
+
 function test::dump-certificate() {
   local certificate=${1}; shift;
   openssl x509 \
     -noout \
     -text \
-    -in ${SIGNING_CA_DIR}/certs/${certificate}
+    -in $(test::certificate-path ${certificate})
 }
 
 function test::fetch-serial() {
@@ -112,11 +132,9 @@ function test::create-server() {
 
 function test::verify-server() {
   local certificate=${1}; shift;
-  local -a alternatives=( "$@" )
-  for alt_name in "${alternatives[@]}"; do
-    test::dump-certificate "${certificate}" | \
-      grep -q "DNS:${alt_name}"
-  done
+  local -a san=( "$@" )
+  test::certificate-file "${certificate}"
+  test::san "${certificate}" "DNS" "${san[@]:-}"
 }
 
 function test::create-ssl() {
@@ -126,6 +144,7 @@ function test::create-ssl() {
 
 function test::verify-ssl() {
   local certificate=${1}; shift;
+  test::certificate-file "${certificate}"
   test::dump-certificate "${certificate}" | \
     grep -q "Netscape Cert Type"
 }
@@ -133,6 +152,13 @@ function test::verify-ssl() {
 function test::create-client() {
   printf "%0.0s\n" {0..6} | \
     ${SIGNING_CA_DIR}/bin/create-client "$@"
+}
+
+function test::verify-client() {
+  local certificate=${1}; shift;
+  local -a san=( "$@" )
+  test::certificate-file "${certificate}"
+  test::san "${certificate}" "email" "${san[@]:-}"
 }
 
 function test::revoke-cert() {
@@ -190,8 +216,10 @@ test::create-server --cn '*.acme.com' --san 'acme.com'
 test::verify-server 'star-acme-com.server.crt' {\*.,}acme.com
 test::create-ssl --cn 'ssl.acme.com' --san 'acme.com'
 test::verify-ssl 'ssl-acme-com.server.crt'
-test::create-client --cn 'bob@acme.com' --name 'bob_builder'
-test::create-client --cn 'bobby@acme.com'
+test::create-client --cn 'bob@acme.com' --name 'bob_builder' 
+test::verify-client 'bob-builder.client.crt' 
+test::create-client --cn 'bobby@acme.com' --san 'b@acme.com'
+test::verify-client 'bobby-acme-com.client.crt' 'b@acme.com'
 test::revoke-cert 'star-acme-com.server.crt'
 test::verify-revokation 'star-acme-com.server.crt'
 test::revoke-cert 'ssl-acme-com.server.crt'

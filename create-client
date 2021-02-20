@@ -17,7 +17,8 @@ declare    CN=
 declare    CERT_NAME=
 declare    SAFE_NAME=
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-declare -x SAN=""
+declare -x SAN="${SAN:-}"
+declare -r SAN_PREFIX="email"
 declare -x CA_PASS="${CA_PASS:-}"
 
 # -----------------------------------------------------------------------------
@@ -34,10 +35,12 @@ function usage() {
     Issues a client or user certificate for CLIENT_NAME.
 
   Options:
-    -h | --help                     This message
-    -n | --name CERT_NAME  file name for the certifcate.
+    -h | --help            This message
+    -n | --name CERT_NAME  File name for the certifcate.
                            Default: COMMON_NAME
     -c | --cn COMMON_NAME  Client name (commonName) for the cert.
+    -s | --san SAN         Set a subject alternative name for the cert.
+                           Can be used muliple times.
 
 USAGE
   exit ${exit_code}
@@ -48,6 +51,7 @@ function parse_options() {
     case ${1} in
     -c|--cn)   shift; CN=${1};;
     -n|--name) shift; CERT_NAME=${1};;
+    -s|--san)  shift; SAN="${SAN}, ${SAN_PREFIX}:${1}";;
     -h|--help) usage 0;;
     *)         usage 1;;
     esac
@@ -85,13 +89,13 @@ function create_client_conf() {
   fi
 }
 
-
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 parse_options "${@}"
 validate_options
 source_files
+assemble_san
 create_safe_name
 message "Creating new client certificate for '${CN}' with:" \
   "CERT_NAME: '${CERT_NAME}'" \

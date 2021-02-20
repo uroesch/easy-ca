@@ -364,3 +364,14 @@ function create_ca_crl() {
     -out crl/ca.crl \
     -passin env:CA_PASS
 }
+
+# -----------------------------------------------------------------------------
+# Assemble commonName and subjectAltNames to one string
+# -----------------------------------------------------------------------------
+function assemble_san() {
+  # Normally an array would be used here but for
+  # backward compatibilty with bash v3.0 we do it
+  # the old fashioned way
+  SAN="${SAN_PREFIX}:${CN}${SAN}"
+  export SAN=${SAN}
+}
