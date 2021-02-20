@@ -47,4 +47,4 @@ jobs:
           --tty \
           --volume $(pwd):/easy-ca \
           bash:${{ matrix.bash }} \
-          bash -c "apk add --update openssl && bash /easy-ca/test/test-easy-ca"
+          bash -c "apk add --update openssl && bash /easy-ca/tests/test-easy-ca"

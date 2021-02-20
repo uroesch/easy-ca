@@ -27,6 +27,11 @@ jobs:
         - macos-10.15
 
     steps:
+    - name: Install bats
+      if: contains(matrix.os, 'ubuntu')
+      shell: bash
+      run: sudo apt-get -y install bats 
+
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
@@ -34,5 +39,5 @@ jobs:
 
     - name: Test creation of CA and certificiates
       shell: bash
-      run: test/test-easy-ca
+      run: bats tests/easy-ca.bats
       timeout-minutes: 5
