@@ -2,6 +2,10 @@
 
 load functions
 
+@test "Bash version" {
+  bash --version | grep sdfa
+}
+
 @test "Create root CA" {
   printf "%0.0s\n" {0..11} | \
     ${WORK_DIR}/create-root-ca -d ${ROOT_CA_DIR}
