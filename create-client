@@ -23,6 +23,7 @@ declare -r SAN_PREFIX="email"
 declare -x CA_PASS="${CA_PASS:-}"
 declare -x PKCS12_PASS="${PKCS12_PASS:-}"
 declare    PKCS12=false
+declare    CLIENT_NAME=
 declare    NOPASS=true
 declare    FORCE=false
 declare    APPEND_CHAIN=false
@@ -49,7 +50,6 @@ function usage() {
                            Can be used muliple times.
     -n | --name CERT_NAME  file name for the certifcate.
                            Default: COMMON_NAME
-    -c | --cn COMMON_NAME  Client name (commonName) for the cert.
     -p | --pkcs12          Create a pkcs12 bundle from key and cert.
     -a | --append-chain    Append chain if ca/chain.pm exists.
     -f | --force           Force override
@@ -131,7 +131,6 @@ function create_pkcs12() {
     -in certs/${SAFE_NAME}.client.crt \
     -out pkcs12/${SAFE_NAME}.client.p12 \
     -password env:PKCS12_PASS
-  delimiter
 }
 
 # -----------------------------------------------------------------------------
