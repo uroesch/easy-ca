@@ -1,4 +1,4 @@
-!/usr/bin/env bash
+#!/usr/bin/env bash
 
 # -----------------------------------------------------------------------------
 # Setup
@@ -22,9 +22,10 @@ declare -r SIGNING_CA_DIR=${BASE_DIR}/signing
 declare -r DELIMITER=$(printf "%0.1s" -{1..80})
 declare    FINAL_MESSAGE=true
 
-# used for setting the password for they CA keys
+# used for setting the password for they CA keys and pkcs12 creation
 export CA_PASS=@T0pS3cr3t
 export CA_PARENT_PASS=@T0pS3cr3t
+export PKCS12_PASS=Acm3@Passw0rd
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -94,7 +95,10 @@ function test::san() {
 
 function test::certificate-path() {
   local certificate="${1}"; shift;
-  echo ${SIGNING_CA_DIR}/certs/${certificate}
+  case ${certificate} in
+  *.crt) echo ${SIGNING_CA_DIR}/certs/${certificate};;
+  *.p12) echo ${SIGNING_CA_DIR}/pkcs12/${certificate};;
+  esac
 }
 
 function test::dump-certificate() {
@@ -161,6 +165,16 @@ function test::verify-client() {
   test::san "${certificate}" "email" "${san[@]:-}"
 }
 
+function test::verify-pkcs12() {
+  local pkcs12=${1}; shift;
+  test::certificate-file "${pkcs12}"
+  openssl pkcs12 \
+   -in "$(test::certificate-path "${pkcs12}")" \
+   -password env:PKCS12_PASS \
+   -passout env:PKCS12_PASS \
+   &>/dev/null
+}
+
 function test::revoke-cert() {
   local certificate=${1}; shift;
   printf "1\ny\n" | \
@@ -212,22 +226,33 @@ parse_options "$@"
 test::setup
 test::create-root-ca
 test::create-signing-ca
+# server cert creation and revocation
 test::create-server --cn '*.acme.com' --san 'acme.com'
 test::verify-server 'star-acme-com.server.crt' {\*.,}acme.com
-test::create-ssl --cn 'ssl.acme.com' --san 'acme.com'
-test::verify-ssl 'ssl-acme-com.server.crt'
-test::create-client --cn 'bob@acme.com' --name 'bob_builder' 
-test::verify-client 'bob-builder.client.crt' 
-test::create-client --cn 'bobby@acme.com' --san 'b@acme.com'
-test::verify-client 'bobby-acme-com.client.crt' 'b@acme.com'
 test::revoke-cert 'star-acme-com.server.crt'
 test::verify-revokation 'star-acme-com.server.crt'
+# ssl cert creation and revocation
+test::create-ssl --cn 'ssl.acme.com' --san 'acme.com'
+test::verify-ssl 'ssl-acme-com.server.crt'
 test::revoke-cert 'ssl-acme-com.server.crt'
+# client cert creation and revocation
 test::verify-revokation 'ssl-acme-com.server.crt'
+test::create-client --cn 'bob@acme.com' --name 'bob_builder'
+test::verify-client 'bob-builder.client.crt'
 test::revoke-cert 'bob-builder.client.crt'
 test::verify-revokation 'bob-builder.client.crt'
+#
+test::create-client --cn 'bobby@acme.com' --san 'b@acme.com'
+test::verify-client 'bobby-acme-com.client.crt' 'b@acme.com'
 test::revoke-cert 'bobby-acme-com.client.crt'
 test::verify-revokation 'bobby-acme-com.client.crt'
+#
+test::create-client --cn 'pkcs12@acme.com' --pkcs12
+test::verify-client 'pkcs12-acme-com.client.crt'
+test::verify-pkcs12 'pkcs12-acme-com.client.p12'
+test::revoke-cert 'pkcs12-acme-com.client.crt'
+test::verify-revokation 'pkcs12-acme-com.client.crt'
+# usage check
 test::usage \
   create-client \
   create-root-ca \

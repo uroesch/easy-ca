@@ -14,25 +14,28 @@ set -o pipefail
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
 declare    CN=
+declare    CA_DIR=
+declare -r BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare    CERT_NAME=
 declare    SAFE_NAME=
-declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare -x SAN="${SAN:-}"
 declare -r SAN_PREFIX="email"
 declare -x CA_PASS="${CA_PASS:-}"
+declare -x PKCS12_PASS="${PKCS12_PASS:-}"
+declare    PKCS12=false
 
 # -----------------------------------------------------------------------------
 # Functions
 # -----------------------------------------------------------------------------
 function usage() {
-  local exit_code=${1:-1}
+  local exit_code=${1:-2}
   cat <<USAGE
 
   Usage:
-    ${SCRIPT} -c COMMON_NAME [-n CERT_NAME] [-h]
+    ${SCRIPT} <options>
 
   Description:
-    Issues a client or user certificate for CLIENT_NAME.
+    Issues a client or user certificate for COMMON_NAME.
 
   Options:
     -h | --help            This message
@@ -41,6 +44,7 @@ function usage() {
     -c | --cn COMMON_NAME  Client name (commonName) for the cert.
     -s | --san SAN         Set a subject alternative name for the cert.
                            Can be used muliple times.
+    -p | --pkcs12          Create a pkcs12 bundle from key and cert.
 
 USAGE
   exit ${exit_code}
@@ -49,11 +53,12 @@ USAGE
 function parse_options() {
   while (( $# > 0 )); do
     case ${1} in
-    -c|--cn)   shift; CN=${1};;
-    -n|--name) shift; CERT_NAME=${1};;
-    -s|--san)  shift; SAN="${SAN}, ${SAN_PREFIX}:${1}";;
-    -h|--help) usage 0;;
-    *)         usage 1;;
+    -c|--cn)           shift; CN=${1};;
+    -n|--name)         shift; CERT_NAME=${1};;
+    -s|--san)          shift; SAN="${SAN}, ${SAN_PREFIX}:${1}";;
+    -p|--pkcs12)       PKCS12=true;;
+    -h|--help)         usage 0;;
+    *)                 usage 1;;
     esac
     shift
   done
@@ -61,6 +66,7 @@ function parse_options() {
 
 function validate_options() {
   if [[ -z ${CN} ]]; then
+    echo -e "\n Missing option for COMMON_NAME"
     usage 1
   fi
 
@@ -89,6 +95,18 @@ function create_client_conf() {
   fi
 }
 
+function create_pkcs12() {
+  [[ ${PKCS12} != true ]] && return || :
+  [[ -d pkcs12 ]] || mkdir pkcs12 && :
+  message "Creating PKCS12 for ${SAFE_NAME}.client.crt"
+  openssl pkcs12 \
+    -export \
+    -inkey private/${SAFE_NAME}.client.key \
+    -in certs/${SAFE_NAME}.client.crt \
+    -out pkcs12/${SAFE_NAME}.client.p12 \
+    -password env:PKCS12_PASS
+}
+
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
@@ -99,12 +117,14 @@ assemble_san
 create_safe_name
 message "Creating new client certificate for '${CN}' with:" \
   "CERT_NAME: '${CERT_NAME}'" \
-  "CLIENT_NAME: '${CN}'"
+  "COMMON_NAME: '${CN}'"
+create_safe_name
 pushd ${BIN_DIR}/.. > /dev/null
 check_existing_configuration "${SAFE_NAME}" client
 create_client_conf
 ask_ca_passphrase 'signing'
 create_csr "client" "${SAFE_NAME}"
 sign_csr "client" "${SAFE_NAME}"
+create_pkcs12
 popd > /dev/null
 message "Client certificate created."
