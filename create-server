@@ -15,10 +15,12 @@ set -o pipefail
 declare -r SCRIPT=${0##*/}
 declare    CERT_TYPE=sever
 declare    CERT_DESCRIPTION="server"
+declare -r CERT_SUFFIX=server
 declare    CN=
 declare -x SAN="${SAN:-}"
 declare -r SAN_PREFIX="DNS"
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+declare    APPEND_CHAIN=false
 
 # -----------------------------------------------------------------------------
 # Functions
@@ -37,6 +39,8 @@ function usage() {
     -h | --help            This message.
     -c | --cn COMMON_NAME  Server hostname (commonName) for the cert.
     -s | --san SAN         One (or more) SAN (subjectAltNames) for the cert.
+    -a | --append-chain    Append chain if ca/chain.pm exists.
+
 
 USAGE
   exit ${exit_code}
@@ -45,10 +49,11 @@ USAGE
 function parse_options() {
   while (( $# > 0 )); do
     case ${1} in
-    -c|--cn)   shift; CN=${1};;
-    -s|--san)  shift; SAN="${SAN}, ${SAN_PREFIX}:${1}";;
-    -h|--help) usage 0;;
-    *)         usage 1;;
+    -c|--cn)           shift; CN=${1};;
+    -s|--san)          shift; SAN="${SAN}, ${SAN_PREFIX}:${1}";;
+    -a|--append-chain) APPEND_CHAIN=true;;
+    -h|--help)         usage 0;;
+    *)                 usage 1;;
     esac
     shift
   done
@@ -108,5 +113,6 @@ template "${BIN_DIR}/templates/${CERT_TYPE}.tpl" "conf/${SAFE_NAME}.server.conf"
 # Create the server key and csr and sign it
 create_csr "server" "${SAFE_NAME}"
 sign_csr "server" "${SAFE_NAME}"
+append_ca_chain
 popd > /dev/null
 message "Server certificate created."
