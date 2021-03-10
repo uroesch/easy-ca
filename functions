@@ -375,3 +375,13 @@ function assemble_san() {
   SAN="${SAN_PREFIX}:${CN}${SAN}"
   export SAN=${SAN}
 }
+
+# -----------------------------------------------------------------------------
+# Append CA chain to certificate
+# -----------------------------------------------------------------------------
+function append_ca_chain() {
+  [[ ${APPEND_CHAIN} != true ]] && return 0 || :
+  if [[ -f ca/chain.pem ]]; then
+    cat ca/chain.pem >> certs/${SAFE_NAME}.${CERT_SUFFIX}.crt
+  fi
+}
