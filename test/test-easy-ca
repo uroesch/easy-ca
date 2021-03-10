@@ -134,10 +134,19 @@ function test::create-server() {
     ${SIGNING_CA_DIR}/bin/create-server "$@"
 }
 
+function test::verify-certificate() {
+  local certificate=${1}; shift;
+  test::certificate-file "${certificate}"
+  openssl verify \
+    -CAfile ${ROOT_CA_DIR}/ca/ca.crt \
+    -untrusted ${SIGNING_CA_DIR}/ca/ca.crt \
+    "$(test::certificate-path "${certificate}")"
+}
+
 function test::verify-server() {
   local certificate=${1}; shift;
   local -a san=( "$@" )
-  test::certificate-file "${certificate}"
+  test::verify-certificate "${certificate}"
   test::san "${certificate}" "DNS" "${san[@]:-}"
 }
 
@@ -148,7 +157,7 @@ function test::create-ssl() {
 
 function test::verify-ssl() {
   local certificate=${1}; shift;
-  test::certificate-file "${certificate}"
+  test::verify-certificate "${certificate}"
   test::dump-certificate "${certificate}" | \
     grep -q "Netscape Cert Type"
 }
@@ -161,7 +170,7 @@ function test::create-client() {
 function test::verify-client() {
   local certificate=${1}; shift;
   local -a san=( "$@" )
-  test::certificate-file "${certificate}"
+  test::verify-certificate "${certificate}"
   test::san "${certificate}" "email" "${san[@]:-}"
 }
 
@@ -178,7 +187,7 @@ function test::verify-pkcs12() {
 function test::verify-cachain() {
   local certificate=${1}; shift;
   local cert_path="$(test::certificate-path "${certificate}")"
-  test::certificate-file "${certificate}"
+  test::verify-certificate "${certificate}"
   # To verify we use the certificate twice since the whole chain
   # must be included.
   openssl verify -CAfile "${cert_path}" "${cert_path}"
@@ -194,7 +203,6 @@ function test::revoke-cert() {
 function test::verify-revokation() {
   local certificate=${1}; shift;
   local serial=$(test::fetch-serial ${certificate})
-
   openssl crl \
     -noout \
     -text \
