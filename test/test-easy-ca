@@ -244,18 +244,20 @@ test::setup
 test::create-root-ca
 test::create-signing-ca
 # server cert creation and revocation
-test::create-server --cn '*.acme.com' --san 'acme.com' --append-chain
+test::create-server --cn '*.acme.com' --san 'acme.com' --append-chain --pkcs12
 test::verify-server 'star-acme-com.server.crt' {\*.,}acme.com
 test::verify-cachain 'star-acme-com.server.crt'
+test::verify-pkcs12 'star-acme-com.server.p12'
 test::revoke-cert 'star-acme-com.server.crt'
 test::verify-revokation 'star-acme-com.server.crt'
 # ssl cert creation and revocation
-test::create-ssl --cn 'ssl.acme.com' --san 'acme.com' --append-chain
+test::create-ssl --cn 'ssl.acme.com' --san 'acme.com' --append-chain --pkcs12
 test::verify-ssl 'ssl-acme-com.server.crt'
 test::verify-cachain 'ssl-acme-com.server.crt'
+test::verify-pkcs12 'ssl-acme-com.server.p12'
 test::revoke-cert 'ssl-acme-com.server.crt'
-# client cert creation and revocation
 test::verify-revokation 'ssl-acme-com.server.crt'
+# client cert creation and revocation
 test::create-client --cn 'bob@acme.com' --name 'bob_builder' --append-chain
 test::verify-client 'bob-builder.client.crt'
 test::verify-cachain 'bob-builder.client.crt'

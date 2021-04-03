@@ -20,6 +20,8 @@ declare    CN=
 declare -x SAN="${SAN:-}"
 declare -r SAN_PREFIX="DNS"
 declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+declare -x PKCS12_PASS="${PKCS12_PASS:-}"
+declare    PKCS12=false
 declare    APPEND_CHAIN=false
 
 # -----------------------------------------------------------------------------
@@ -39,6 +41,7 @@ function usage() {
     -h | --help            This message.
     -c | --cn COMMON_NAME  Server hostname (commonName) for the cert.
     -s | --san SAN         One (or more) SAN (subjectAltNames) for the cert.
+    -p | --pkcs12          Create a pkcs12 bundle from key and cert.
     -a | --append-chain    Append chain if ca/chain.pm exists.
 
 
@@ -51,6 +54,7 @@ function parse_options() {
     case ${1} in
     -c|--cn)           shift; CN=${1};;
     -s|--san)          shift; SAN="${SAN}, ${SAN_PREFIX}:${1}";;
+    -p|--pkcs12)       PKCS12=true;;
     -a|--append-chain) APPEND_CHAIN=true;;
     -h|--help)         usage 0;;
     *)                 usage 1;;
@@ -114,5 +118,6 @@ template "${BIN_DIR}/templates/${CERT_TYPE}.tpl" "conf/${SAFE_NAME}.server.conf"
 create_csr "server" "${SAFE_NAME}"
 sign_csr "server" "${SAFE_NAME}"
 append_ca_chain
+create_pkcs12
 popd > /dev/null
 message "Server certificate created."

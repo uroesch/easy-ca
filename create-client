@@ -101,18 +101,6 @@ function create_client_conf() {
   fi
 }
 
-function create_pkcs12() {
-  [[ ${PKCS12} != true ]] && return || :
-  [[ -d pkcs12 ]] || mkdir pkcs12 && :
-  message "Creating PKCS12 for ${SAFE_NAME}.${CERT_SUFFIX}.crt"
-  openssl pkcs12 \
-    -export \
-    -inkey private/${SAFE_NAME}.${CERT_SUFFIX}.key \
-    -in certs/${SAFE_NAME}.${CERT_SUFFIX}.crt \
-    -out pkcs12/${SAFE_NAME}.${CERT_SUFFIX}.p12 \
-    -password env:PKCS12_PASS
-}
-
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
