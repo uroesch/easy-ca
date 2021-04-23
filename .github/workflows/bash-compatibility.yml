@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Verify bash compatibility
 # Author: Urs Roesch https://github.com/uroesch
-# Version: 0.1.0
+# Version: 0.2.0
 # -----------------------------------------------------------------------------
 name: bash-compatibility
 
@@ -12,6 +12,7 @@ on:
   pull_request:
     branches:
     - master
+    - main
 
 jobs:
   bash-compatibility:
