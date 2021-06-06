@@ -12,8 +12,8 @@ set -o pipefail
 # Global
 # -----------------------------------------------------------------------------
 declare -r SCRIPT=${0##*/}
-declare    CERT_NAME=
-declare    BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+declare -- CERT_NAME=
+declare -- BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare -x SAN=${SAN:-}
 declare -x CA_PASS=${CA_PASS:-}
 

@@ -14,9 +14,9 @@ set -o pipefail
 declare -r SCRIPT=${0##*/}
 declare -x SAN=${SAN:-}
 declare -r BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-declare    CA_DIR=
-declare    PARENT=${BIN_DIR}/..
-declare    CA_KEY_CIPHER=${CA_KEY_CIPHER:-}
+declare -- CA_DIR=
+declare -- PARENT=${BIN_DIR}/..
+declare -- CA_KEY_CIPHER=${CA_KEY_CIPHER:-}
 
 # -----------------------------------------------------------------------------
 # Functions
