@@ -163,7 +163,7 @@ function init_ca_home() {
 # Generate the ca.conf for new root and signing CAs
 # -----------------------------------------------------------------------------
 function generate_conf() {
-  local dest=${1}; shift;
+  local default_config=${1}; shift;
   local CA_NAME=$(basename ${CA_DIR})
 
   echo -n "1. Short label for new CA [${CA_NAME}]: "
@@ -222,19 +222,9 @@ function generate_conf() {
     CA_CERT_CN=${CERT_CN}
   fi
 
-  cat > ${dest} << EOF
-CA_DOMAIN="${CA_DOMAIN}"
-CA_NAME="${CA_NAME}"
-
-CA_CERT_C="${CA_CERT_C}"
-CA_CERT_ST="${CA_CERT_ST}"
-CA_CERT_L="${CA_CERT_L}"
-CA_CERT_O="${CA_CERT_O}"
-CA_CERT_OU="${CA_CERT_OU}"
-CA_CERT_CN="${CA_CERT_CN}"
-
-CA_KEY_CIPHER=${CA_KEY_CIPHER}
-EOF
+  for config in CA_{DOMAIN,NAME,CERT_{C,ST,L,O,OU,CN},KEY_CIPHER}; do
+    printf '%s="%s"\n' ${config} "${!config}"
+  done > "${default_config}"
 }
 
 # -----------------------------------------------------------------------------
