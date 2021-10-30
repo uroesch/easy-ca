@@ -37,7 +37,7 @@ tested at each pull request.
 | Operating System | Compatible
 
 | Ubuntu Xenial Xerus (16.04 LTS)
-| :heavy_check_mark:
+| :heavy_check_mark: footnote:[Works but is no longer actively tested]
 
 | Ubuntu Bionic Beaver (18.04 LTS)
 | :heavy_check_mark:
@@ -50,6 +50,10 @@ tested at each pull request.
 
 | macOS Big Sur 11.0
 | :heavy_check_mark:
+
+| Windows with https://github.com/git-for-windows/git[git-bash]
+| :x: footnote:[Does not work due to the use of Unix symlinks]
+
 |===
 
 == Bash version
@@ -91,6 +95,8 @@ tested at each pull request.
 
 NOTE: Earlier versions of Bash have not been tested but will most likely not work.
 
+<<<
+
 == Usage
 
 === Create a new Root CA
@@ -101,7 +107,7 @@ an existing Easy CA installation. The CA is self-contained within the specified
 directory tree. It is portable and can be stored on removable media for
 security.
 
-[source,bash]
+[source,console]
 ----
 create-root-ca --ca-dir $ROOT_CA_DIR
 ----
@@ -111,7 +117,7 @@ defaults for this CA. Optionally, you can edit _defaults.conf_ to set this
 information in advance. The new CA is now ready for use. The CA key,
 certificate, and CRL are available for review:
 
-[source,bash]
+[source,console]
 ----
 $ROOT_CA_DIR/ca/ca.crt
 $ROOT_CA_DIR/private/ca.key
@@ -124,7 +130,7 @@ Running *create-signing-ca* from within a Root CA installation will
 initialize a new Intermediate CA directory structure, indepedent and separate
 from the Root CA. A Root CA may issue multiple Intermediate CAs.
 
-[source,bash]
+[source,console]
 ----
 $ROOT_CA_DIR/bin/create-signing-ca --ca-dir $SIGNING_CA_DIR
 ----
@@ -133,7 +139,7 @@ $ROOT_CA_DIR/bin/create-signing-ca --ca-dir $SIGNING_CA_DIR
 configuration as defaults. The Intermediate Signing CA is now ready for use.
 The CA key, certificate, chain file, and CRL are available for review:
 
-[source,bash]
+[source,console]
 ----
 $SIGNING_CA_DIR/ca/ca.crt
 $SIGNING_CA_DIR/ca/chain.pem
@@ -147,7 +153,7 @@ After the Certificate Authority has been created, the scripts should be run on
 the created CA directory (At the first run the directory must no exist).
 For example:
 
-[source,bash]
+[source,console]
 ----
 create-root-ca --ca-dir /opt/CA
 cd /opt/CA/bin
@@ -159,7 +165,7 @@ create-client --cn user1@bogus.com --name user1
 Running *create-server* from within any CA installation will issue a new
 server (serverAuth) certificate:
 
-[source,bash]
+[source,console]
 ----
 $CA_DIR/bin/create-server --cn fqdn.domain.com
 ----
@@ -167,7 +173,7 @@ $CA_DIR/bin/create-server --cn fqdn.domain.com
 Optionally, you can specify one (or more) subjectAltNames to accompany the new
 certificate:
 
-[source,bash]
+[source,console]
 ----
 $CA_DIR/bin/create-server --cn fqdn.domain.com \
   --san alt1.domain.com --san alt2.domain.com
@@ -177,7 +183,7 @@ $CA_DIR/bin/create-server --cn fqdn.domain.com \
 configuration as defaults. After the script is completed, the server
 certificate, key, and CSR are available for review:
 
-[source,bash]
+[source,console]
 ----
 $CA_DIR/certs/fqdn-domain-com.server.crt
 $CA_DIR/private/fqdn-domain-com.server.key
@@ -189,7 +195,7 @@ $CA_DIR/csr/fqdn-domain-com.server.csr
 Running *create-client* from within any CA installation will issue a new
 client (clientAuth) certificate:
 
-[source,bash]
+[source,console]
 ----
 $CA_DIR/bin/create-client --cn user@domain.com --name certname
 ----
@@ -198,14 +204,14 @@ $CA_DIR/bin/create-client --cn user@domain.com --name certname
 configuration as defaults. After the script is completed, the client
 certificate, key, and CSR are available for review:
 
-[source,bash]
+[source,console]
 ----
 $CA_DIR/certs/user-domain-com.client.crt
 $CA_DIR/private/user-domain-com.client.key
 $CA_DIR/csr/user-domain-com.client.csr
 ----
 
-[source,bash]
+[source,console]
 ----
 $CA_DIR/bin/create-client --cn user@domain.com
 ----
@@ -217,14 +223,14 @@ certificate issued by that CA and update the CRL:
 
 For Server certificates:
 
-[source,bash]
+[source,console]
 ----
 $CA_DIR/bin/revoke-cert --cert-name $CA_DIR/certs/fqdn-domain-com.server.crt
 ----
 
 For Client certificates:
 
-[source,bash]
+[source,console]
 ----
 $CA_DIR/bin/revoke-cert --cert-name $CA_DIR/certs/certificate.client.crt
 ----
@@ -232,7 +238,7 @@ $CA_DIR/bin/revoke-cert --cert-name $CA_DIR/certs/certificate.client.crt
 *revoke-cert* will prompt for the revocation reason. After the script is
 completed, the server CRL is updated and available for review:
 
-[source,bash]
+[source,console]
 ----
 $CA_DIR/crl/ca.crl
 ----
