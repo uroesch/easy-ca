@@ -76,9 +76,7 @@ function validate_options() {
     usage 1
   fi
 
-  if [[ -z ${CERT_NAME} ]]; then
-    CERT_NAME=${CN}
-  fi
+  CERT_NAME=${CERT_NAME:-${CN}}
 }
 
 function source_files() {
