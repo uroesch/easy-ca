@@ -17,6 +17,7 @@ declare -- CERT_TYPE=sever
 declare -- CERT_DESCRIPTION="server"
 declare -r CERT_SUFFIX=server
 declare -- CN=
+declare -- CERT_NAME=
 declare -x SAN="${SAN:-}"
 declare -r SAN_PREFIX="DNS"
 declare -- BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -68,6 +69,8 @@ function validate_options() {
   if [[ -z ${CN} ]]; then
     usage 1
   fi
+
+  CERT_NAME=${CERT_NAME:-${CN}}
 }
 
 function determine_operation_mode() {
