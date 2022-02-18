@@ -243,6 +243,10 @@ parse_options "$@"
 test::setup
 test::create-root-ca
 test::create-signing-ca
+
+# -----------------------------------------------------------------------------
+# Tests -- Long Options
+# -----------------------------------------------------------------------------
 # server cert creation and revocation
 test::create-server --cn '*.acme.com' --san 'acme.com' --append-chain --pkcs12
 test::verify-server 'star-acme-com.server.crt' {\*.,}acme.com
@@ -274,7 +278,45 @@ test::verify-client 'pkcs12-acme-com.client.crt'
 test::verify-pkcs12 'pkcs12-acme-com.client.p12'
 test::revoke-cert 'pkcs12-acme-com.client.crt'
 test::verify-revokation 'pkcs12-acme-com.client.crt'
-# usage check
+
+# -----------------------------------------------------------------------------
+# Tests -- Short Options
+# -----------------------------------------------------------------------------
+# server cert creation and revocation
+test::create-server -c '*.acme.net' -s 'acme.net' -a -p
+test::verify-server 'star-acme-net.server.crt' {\*.,}acme.net
+test::verify-cachain 'star-acme-net.server.crt'
+test::verify-pkcs12 'star-acme-net.server.p12'
+test::revoke-cert 'star-acme-net.server.crt'
+test::verify-revokation 'star-acme-net.server.crt'
+# ssl cert creation and revocation
+test::create-ssl -c 'ssl.acme.net' -s 'acme.net' -a -p
+test::verify-ssl 'ssl-acme-net.server.crt'
+test::verify-cachain 'ssl-acme-net.server.crt'
+test::verify-pkcs12 'ssl-acme-net.server.p12'
+test::revoke-cert 'ssl-acme-net.server.crt'
+test::verify-revokation 'ssl-acme-net.server.crt'
+# client cert creation and revocation
+test::create-client -c 'bob@acme.net' -n 'bobby_builder' -a
+test::verify-client 'bobby-builder.client.crt'
+test::verify-cachain 'bobby-builder.client.crt'
+test::revoke-cert 'bobby-builder.client.crt'
+test::verify-revokation 'bobby-builder.client.crt'
+#
+test::create-client -c 'bobby@acme.net' -s 'b@acme.net'
+test::verify-client 'bobby-acme-net.client.crt' 'b@acme.net'
+test::revoke-cert 'bobby-acme-net.client.crt'
+test::verify-revokation 'bobby-acme-net.client.crt'
+#
+test::create-client -c 'pkcs12@acme.net' -p
+test::verify-client 'pkcs12-acme-net.client.crt'
+test::verify-pkcs12 'pkcs12-acme-net.client.p12'
+test::revoke-cert 'pkcs12-acme-net.client.crt'
+test::verify-revokation 'pkcs12-acme-net.client.crt'
+
+# -----------------------------------------------------------------------------
+# Tests -- Usage
+# -----------------------------------------------------------------------------
 test::usage \
   create-client \
   create-root-ca \
