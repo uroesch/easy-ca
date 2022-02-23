@@ -23,6 +23,7 @@ declare -r SAN_PREFIX="DNS"
 declare -- BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 declare -x PKCS12_PASS="${PKCS12_PASS:-}"
 declare -- PKCS12=false
+declare -- CSR_ONLY=false
 declare -- APPEND_CHAIN=false
 
 # -----------------------------------------------------------------------------
@@ -45,6 +46,7 @@ function usage() {
                            Can be used muliple times.
     -p | --pkcs12          Create a pkcs12 bundle from key and cert.
     -a | --append-chain    Append chain if ca/chain.pm exists.
+    -r | --csr-only        Only create a key and a certificate signing request.
 
 USAGE
   exit ${exit_code}
@@ -57,6 +59,7 @@ function parse_options() {
     -s|--san)          shift; SAN="${SAN}, ${SAN_PREFIX}:${1}";;
     -p|--pkcs12)       PKCS12=true;;
     -a|--append-chain) APPEND_CHAIN=true;;
+    -r|--csr-only)     CSR_ONLY=true;;
     -h|--help)         usage 0;;
     *)                 usage 1;;
     esac
@@ -119,6 +122,7 @@ template "${BIN_DIR}/templates/${CERT_TYPE}.tpl" "conf/${SAFE_NAME}.server.conf"
 
 # Create the server key and csr and sign it
 create_csr "server" "${SAFE_NAME}"
+[[ ${CSR_ONLY} == true ]] && exit 0 || :
 sign_csr "server" "${SAFE_NAME}"
 append_ca_chain
 create_pkcs12

@@ -256,6 +256,8 @@ function ask_ca_passphrase() {
   local ca_name=${1:-signing}
   # only use for non root CA requests
   [[ ${CA_TYPE:-} == root ]] && return 0
+  # Skip if only a csr request is requested
+  [[ ${CSR_ONLY:-} == true ]] && return 0
 
   function @password_prompt() {
     printf "\nEnter passphrase for ${ca_name} CA key: " 3>&1 1>&2 2>&3
