@@ -84,29 +84,36 @@ function test::certificate-file() {
 }
 
 function test::san() {
-  local certificate="${1}"; shift;
+  local file="${1}"; shift;
   local prefix="${1}"; shift;
   local -a san=( "$@" )
   for entry in "${san[@]}"; do
-    test::dump-certificate "${certificate}" | \
+    test::dump-certificate "${file}" | \
       grep -q "${prefix}:${entry}"
   done
 }
 
 function test::certificate-path() {
-  local certificate="${1}"; shift;
-  case ${certificate} in
-  *.crt) echo ${SIGNING_CA_DIR}/certs/${certificate};;
-  *.p12) echo ${SIGNING_CA_DIR}/pkcs12/${certificate};;
+  local file="${1}"; shift;
+  case ${file} in
+  *.csr) echo ${SIGNING_CA_DIR}/csr/${file};;
+  *.crt) echo ${SIGNING_CA_DIR}/certs/${file};;
+  *.p12) echo ${SIGNING_CA_DIR}/pkcs12/${file};;
   esac
 }
 
+
 function test::dump-certificate() {
-  local certificate=${1}; shift;
-  openssl x509 \
+  local file=${1}; shift;
+  case "${file}" in
+  *.csr) command=req;;
+  *.crt) command=x509;;
+  esac
+
+  openssl ${command} \
     -noout \
     -text \
-    -in $(test::certificate-path ${certificate})
+    -in $(test::certificate-path ${file})
 }
 
 function test::fetch-serial() {
@@ -132,6 +139,21 @@ function test::create-signing-ca() {
 function test::create-server() {
   printf "%0.0s\n" {0..6} | \
     ${SIGNING_CA_DIR}/bin/create-server "$@"
+}
+
+function test::verify-request() {
+  local -- request=${1}; shift;
+  local -a san=( "${@}" )
+  case "${request}" in
+  *.server.csr) type=DNS;;
+  *.client.csr) type=email;;
+  esac
+  test::certificate-file "${request}"
+  # use two greps for macos!
+  test::dump-certificate "${request}" | \
+    grep "Subject:" | \
+    grep -q "${san[0]}"
+  test::san "${request}" "${type}" "${san[@]:-}"
 }
 
 function test::verify-certificate() {
@@ -249,29 +271,39 @@ test::create-signing-ca
 # -----------------------------------------------------------------------------
 # server cert creation and revocation
 test::create-server --cn '*.acme.com' --san 'acme.com' --append-chain --pkcs12
+test::verify-request 'star-acme-com.server.csr' {\*.,}acme.com
 test::verify-server 'star-acme-com.server.crt' {\*.,}acme.com
 test::verify-cachain 'star-acme-com.server.crt'
 test::verify-pkcs12 'star-acme-com.server.p12'
 test::revoke-cert 'star-acme-com.server.crt'
 test::verify-revokation 'star-acme-com.server.crt'
+
+# server CSR only creation
+test::create-server --cn 'csr.acme.com' --san 'csr-only.acme.com' --csr-only
+test::verify-request 'csr-acme-com.server.csr' {csr,csr-only}.acme.com
+
 # ssl cert creation and revocation
 test::create-ssl --cn 'ssl.acme.com' --san 'acme.com' --append-chain --pkcs12
+test::verify-request 'ssl-acme-com.server.csr' {ssl.,}acme.com
 test::verify-ssl 'ssl-acme-com.server.crt'
 test::verify-cachain 'ssl-acme-com.server.crt'
 test::verify-pkcs12 'ssl-acme-com.server.p12'
 test::revoke-cert 'ssl-acme-com.server.crt'
 test::verify-revokation 'ssl-acme-com.server.crt'
+
 # client cert creation and revocation
-test::create-client --cn 'bob@acme.com' --name 'bob_builder' --append-chain
-test::verify-client 'bob-builder.client.crt'
-test::verify-cachain 'bob-builder.client.crt'
-test::revoke-cert 'bob-builder.client.crt'
-test::verify-revokation 'bob-builder.client.crt'
+test::create-client --cn 'wiley.e.coyote@acme.com' --name 'wiley_coyote' --append-chain
+test::verify-request 'wiley-coyote.client.csr' wiley.e.coyote@acme.com
+test::verify-client 'wiley-coyote.client.crt'
+test::verify-cachain 'wiley-coyote.client.crt'
+test::revoke-cert 'wiley-coyote.client.crt'
+test::verify-revokation 'wiley-coyote.client.crt'
 #
-test::create-client --cn 'bobby@acme.com' --san 'b@acme.com'
-test::verify-client 'bobby-acme-com.client.crt' 'b@acme.com'
-test::revoke-cert 'bobby-acme-com.client.crt'
-test::verify-revokation 'bobby-acme-com.client.crt'
+test::create-client --cn 'roadrunner@acme.com' --san 'rr@acme.com'
+test::verify-request 'roadrunner-acme-com.client.csr' {roadrunner,rr}@acme.com
+test::verify-client 'roadrunner-acme-com.client.crt' 'rr@acme.com'
+test::revoke-cert 'roadrunner-acme-com.client.crt'
+test::verify-revokation 'roadrunner-acme-com.client.crt'
 #
 test::create-client --cn 'pkcs12@acme.com' --pkcs12
 test::verify-client 'pkcs12-acme-com.client.crt'
@@ -284,29 +316,39 @@ test::verify-revokation 'pkcs12-acme-com.client.crt'
 # -----------------------------------------------------------------------------
 # server cert creation and revocation
 test::create-server -c '*.acme.net' -s 'acme.net' -a -p
+test::verify-request 'star-acme-net.server.csr' {\*.,}acme.net
 test::verify-server 'star-acme-net.server.crt' {\*.,}acme.net
 test::verify-cachain 'star-acme-net.server.crt'
 test::verify-pkcs12 'star-acme-net.server.p12'
 test::revoke-cert 'star-acme-net.server.crt'
 test::verify-revokation 'star-acme-net.server.crt'
+
+# server CSR only creation
+test::create-server -c 'csr.acme.net' -s 'csr-only.acme.net' -r
+test::verify-request 'csr-acme-net.server.csr' {csr,csr-only}.acme.net
+
 # ssl cert creation and revocation
 test::create-ssl -c 'ssl.acme.net' -s 'acme.net' -a -p
+test::verify-request 'ssl-acme-net.server.csr' {ssl.,}acme.net
 test::verify-ssl 'ssl-acme-net.server.crt'
 test::verify-cachain 'ssl-acme-net.server.crt'
 test::verify-pkcs12 'ssl-acme-net.server.p12'
 test::revoke-cert 'ssl-acme-net.server.crt'
 test::verify-revokation 'ssl-acme-net.server.crt'
+
 # client cert creation and revocation
-test::create-client -c 'bob@acme.net' -n 'bobby_builder' -a
-test::verify-client 'bobby-builder.client.crt'
-test::verify-cachain 'bobby-builder.client.crt'
-test::revoke-cert 'bobby-builder.client.crt'
-test::verify-revokation 'bobby-builder.client.crt'
+test::create-client -c 'wiley.e.coyote@acme.net' -n 'wiley_e' -a
+test::verify-request 'wiley-e.client.csr' wiley.e.coyote@acme.net
+test::verify-client 'wiley-e.client.crt'
+test::verify-cachain 'wiley-e.client.crt'
+test::revoke-cert 'wiley-e.client.crt'
+test::verify-revokation 'wiley-e.client.crt'
 #
-test::create-client -c 'bobby@acme.net' -s 'b@acme.net'
-test::verify-client 'bobby-acme-net.client.crt' 'b@acme.net'
-test::revoke-cert 'bobby-acme-net.client.crt'
-test::verify-revokation 'bobby-acme-net.client.crt'
+test::create-client -c 'roadrunner@acme.net' -s 'rr@acme.net'
+test::verify-request 'roadrunner-acme-net.client.csr' {roadrunner,rr}@acme.net
+test::verify-client 'roadrunner-acme-net.client.crt' 'rr@acme.net'
+test::revoke-cert 'roadrunner-acme-net.client.crt'
+test::verify-revokation 'roadrunner-acme-net.client.crt'
 #
 test::create-client -c 'pkcs12@acme.net' -p
 test::verify-client 'pkcs12-acme-net.client.crt'
