@@ -45,10 +45,16 @@ tested at each pull request.
 | Ubuntu Focal Fossa (20.04 LTS)
 | :heavy_check_mark:
 
+| Ubuntu Jammy Jellyfish (22.04 LTS)
+| :heavy_check_mark:
+
 | macOS Catalina 10.15
 | :heavy_check_mark:
 
 | macOS Big Sur 11.0
+| :heavy_check_mark:
+
+| macOS Monterey 12.0
 | :heavy_check_mark:
 
 | Windows with https://github.com/git-for-windows/git[git-bash]
@@ -90,6 +96,9 @@ tested at each pull request.
 | :heavy_check_mark:
 
 | 5.1.x
+| :heavy_check_mark:
+
+| 5.2.x
 | :heavy_check_mark:
 |===
 
